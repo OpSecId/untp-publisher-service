@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from app.models.publications import (
     Publication,
+    Forwarding
 )
 from app.models.mongodb import CredentialRecord
 from app.plugins.mongodb import MongoClient
@@ -19,6 +20,66 @@ import segno
 import copy
 
 router = APIRouter(prefix="/credentials")
+
+
+@router.post("/forward", tags=["Client"])
+async def forward_credential(request_body: Forwarding):
+    settings.LOGGER.info("Forwarding request")
+    credential_input = request_body.model_dump()["verifiableCredential"]
+    proof = credential_input.pop('proof')
+    options = request_body.model_dump()["options"]
+    mongo = MongoClient()
+    
+    # Check if credential type has a registration
+    credential_type = credential_input.get("type")
+    credential_registration = mongo.find_one(
+        'CredentialTypeRecord',
+        {'type': credential_type}
+    )
+    if not credential_registration:
+        raise HTTPException(
+            status_code=404,
+            detail="Unregistered credential type",
+        )
+    
+    # Check if entity id provided exists in orgbook
+    entity_id = options.get("entityId")
+    # try:
+    #     OrgbookPublisher().fetch_buisness_info(entity_id)
+    # except:
+    #     raise HTTPException(
+    #         status_code=404,
+    #         detail=f"No orgbook registration found for {entity_id}",
+    #     )
+        
+    cardinality_hash = await PublisherRegistrar().check_cardinality(
+        credential_input=copy.deepcopy(credential_input), options=options
+    )
+    if cardinality_hash:
+        credential = await PublisherRegistrar().format_credential(
+            credential_input=copy.deepcopy(credential_input), options=options
+        )
+
+        traction = TractionController()
+        traction.authorize()
+        vc = traction.issue_vc(credential)
+        vc_jwt = traction.sign_vc_jwt(vc)
+        mongo.insert(
+            "CredentialRecord",
+            CredentialRecord(
+                id=options.get("credentialId"),
+                type=credential_type,
+                entity_id=entity_id,
+                cardinality_id=options.get("cardinalityId"),
+                cardinality_hash=cardinality_hash,
+                refresh=False,
+                revocation=False,
+                suspension=False,
+                vc=vc,
+                vc_jwt=vc_jwt,
+            ).model_dump(),
+        )
+        return JSONResponse(status_code=201, content={"credentialId": vc["id"]})
 
 
 @router.post("/publish", tags=["Client"], dependencies=[Depends(JWTBearer())])

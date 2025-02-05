@@ -63,7 +63,14 @@ class PublisherController:
         except:
             raise PublisherControllerError()
         
-    def get_credential_types(self, issuer):
+    def get_credential_types(self, issuer=None, cred_type=None):
+        query_params = []
+        if issuer:
+            query_params.append(f'issuer={issuer}')
+        if cred_type:
+            query_params.append(f'type={cred_type}')
+        if len(query_params) > 0:
+            query_params = '?'+'&'.join(query_params)
         r = requests.get(
             f'{self.endpoint}/registrations/credentials?issuer={issuer}',
             headers={'X-API-KEY': self.api_key}
@@ -106,3 +113,12 @@ class PublisherController:
             return r.json()
         except:
             raise PublisherControllerError()
+        
+    def forward_credential(self, vc, options):
+        r = requests.post(
+            f'{self.endpoint}/credentials/forward',
+            json={
+                'verifiableCredential': vc,
+                'options': options
+            }
+        )

@@ -14,6 +14,12 @@ class TractionController:
         self.tenant_id = Config.TRACTION_TENANT_ID
         self.api_key = Config.TRACTION_API_KEY
         self.headers = {}
+        self.signing_key_id = 'key-01-multikey'
+        self.di_options = {
+            'type': 'DataIntegrityProof',
+            'cryptosuite': 'eddsa-jcs-2022',
+            'proofPurpose': 'assertionMethod'
+        }
         
     def admin_login(self, tenant_id, api_key):
         r = requests.post(
@@ -54,6 +60,9 @@ class TractionController:
         self.headers={
             'Authorization': f'Bearer {token}'
         }
+        
+    def set_issuer(self, issuer_id):
+        self.di_options['verificationMethod'] = f'{issuer_id}#{self.signing_key_id}'
     
     def offer_credential(self, alias, cred_def_id, attributes):
         cred_offer = self.create_cred_offer(cred_def_id, attributes)
@@ -178,3 +187,19 @@ class TractionController:
             return r.json()
         except:
             raise TractionControllerError('No exchange')
+        
+    def sign(self, credential):
+        endpoint = f'{self.endpoint}/vc/di/add-proof'
+        r = requests.post(
+            endpoint,
+            headers=self.headers,
+            json={
+                'document': credential,
+                'options': self.di_options
+            }
+        )
+        print(r.text)
+        try:
+            return r.json()
+        except:
+            raise TractionControllerError('Couldnt sign credential')

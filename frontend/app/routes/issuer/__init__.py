@@ -20,16 +20,21 @@ from .forms import (
 import time
 import json
 import os
+import uuid
+from datetime import datetime
 from werkzeug.utils import secure_filename
+from jsonpath_ng import jsonpath, parse
 
 bp = Blueprint("issuer", __name__)
 
 UPLOAD_FOLDER = os.path.join('staticFiles', 'uploads')
 ALLOWED_EXTENSIONS = {'csv'}
-# @bp.before_request
-# def before_request_callback():
-#     if not session.get('pres_req'):
-#         session['pres_req'] = {}
+@bp.before_request
+def before_request_callback():
+    session['issuer'] = {
+        'id': 'did:web:traceability.site:test:11',
+        'name': '11'
+    }
 
 def sanitize_csv_data_entries(data_entries):
     for entry_idx, entry_data in enumerate(data_entries):
@@ -144,19 +149,48 @@ def index():
                 
             data_entries = sanitize_csv_data_entries(csv_data[1:])
             claims = {}
+            
+            traction = TractionController()
+            token = traction.request_token(Config.TRACTION_TENANT_ID, Config.TRACTION_API_KEY)
+            traction.set_headers(token)
+            traction.set_issuer(session['issuer']['id'])
+            credential_type = form_credential_issuance.credential_type.data
+            credential_type = next((entry for entry in credential_types if entry['type'] == credential_type), None)
+            # print(credential_type)
+            credential_type['core_paths']
+            entity_expr = parse(credential_type['core_paths']['entityId'])
+            cardinality_expr = parse(credential_type['core_paths']['cardinalityId'])
             for entry_idx, entry_data in enumerate(data_entries):
+                credential_id = str(uuid.uuid4())
                 credential = {
-                    '@context': [
-                        'https://www.w3.org/ns/credentials/v2',
-                        'https://www.w3.org/ns/credentials/examples/v2'
-                    ],
-                    'type': ['VerifiableCredential'],
-                    'issuer': session['issuer']
+                    # '@context': [
+                    #     'https://www.w3.org/ns/credentials/v2',
+                    #     'https://www.w3.org/ns/credentials/examples/v2'
+                    # ],
+                    # 'id': f'urn:uuid:{credential_id}',
+                    # 'type': ['VerifiableCredential', credential_type],
+                    'type': credential_type,
+                    'issuer': session['issuer'],
                 }
                 for attribute_idx, attribute in enumerate(data_entries[entry_idx]):
                     claims[pointers[header_row[attribute_idx]]] = attribute
                     
                 update_json_with_pointers(credential, claims)
+                options = {
+                    'entityId': entity_expr.find(credential)[0].value,
+                    'credentialId': credential_id,
+                    'cardinalityId': cardinality_expr.find(credential)[0].value
+                }
+                
+                vc = traction.sign(credential)
+            #     publisher.forward_credential(
+            #         vc,
+            #         {
+            #             'credentialId': credential_id,
+            #             'credentialType': credential_type
+            #         }
+            #     )
+                # print(vc)
                 
                 
             return redirect(url_for('issuer.index'))

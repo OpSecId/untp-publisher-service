@@ -75,7 +75,6 @@ def index():
             request.form.get('name'),
             request.form.get('description'),
         )
-        print(issuer_registration)
         return redirect(url_for('admin.index'))
     elif request.method == "POST" and form_credential_offer.submit_offer.data:
         

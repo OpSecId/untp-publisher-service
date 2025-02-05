@@ -49,3 +49,12 @@ class PublicationOptions(BaseModel):
 class Publication(BaseModel):
     credential: PublicationCredential = Field()
     options: PublicationOptions = Field()
+
+
+class ForwardingOptions(BaseModel):
+    credentialId: str = Field()
+    credentialType: str = Field()
+    
+class Forwarding(BaseModel):
+    verifiableCredential: PublicationCredential = Field()
+    options: ForwardingOptions = Field()
