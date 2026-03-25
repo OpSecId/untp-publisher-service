@@ -1,32 +1,35 @@
 from typing import Union, List, Dict, Any
-from pydantic import Field, BaseModel, field_validator
+from pydantic import BaseModel as PydanticBaseModel, ConfigDict, Field, field_validator
 from pydantic.json_schema import SkipJsonSchema
-from config import settings
+
 from app.utils import valid_datetime_string, valid_uri
 
 
-class NameField(BaseModel, extra="forbid"):
+class NameField(PydanticBaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
     value: str = Field(None, alias="@value")
     language: str = Field(None, alias="@language")
     direction: str = Field(None, alias="@direction")
 
 
-class DescriptionField(BaseModel, extra="forbid"):
+class DescriptionField(PydanticBaseModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
     value: str = Field(None, alias="@value")
     language: str = Field(None, alias="@language")
     direction: str = Field(None, alias="@direction")
 
 
-class BaseModel(BaseModel, extra="allow"):
+class BaseModel(PydanticBaseModel):
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
     id: SkipJsonSchema[str] = Field(None)
     type: Union[str, List[str]] = Field(None)
     name: SkipJsonSchema[Union[str, NameField, List[NameField]]] = Field(None)
     description: SkipJsonSchema[
         Union[str, DescriptionField, List[DescriptionField]]
     ] = Field(None)
-    
-    class Config:
-        populate_by_name = True
 
     def model_dump(self, **kwargs) -> Dict[str, Any]:
         return super().model_dump(by_alias=True, exclude_none=True, **kwargs)

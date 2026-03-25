@@ -1,4 +1,4 @@
-from app.models.untp import Product, Facility, ConformityAssessment, Regulation, ConformityAttestation, Party, IdentifierScheme, ConformityAssessmentScheme
+from app.models.untp_manual import Product, Facility, ConformityAssessment, Regulation, ConformityAttestation, Party, IdentifierScheme, ConformityAssessmentScheme
 from app.plugins.soup import Soup
 from untp.releases import DEFAULT_DCC_CONTEXT_URL
 

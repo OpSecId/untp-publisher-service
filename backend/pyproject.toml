@@ -30,6 +30,9 @@ dependencies = [
     "blake3>=0.4.1,<0.5",
     "pymongo>=4.10.1,<5",
     "base58>=2.1.1,<3",
+    "jsonschema>=4.23.0,<5",
+    "rdflib>=7.0.0,<8",
+    "requests>=2.32.0,<3",
 ]
 
 [build-system]
@@ -38,3 +41,15 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:rdflib.graph",
+    "ignore::DeprecationWarning:rdflib.plugins.parsers.jsonld",
+    "ignore::DeprecationWarning:rdflib.plugins.serializers.nquads",
+]

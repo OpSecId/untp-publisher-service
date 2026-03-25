@@ -1,3 +1,8 @@
+"""Loose Pydantic shapes for DCC issuance in the UNTP plugin (not JSON-Schema-derived).
+
+For schema-aligned UNTP v0.7.0 models, see :mod:`app.models.untp.v0_7_0`.
+"""
+
 from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field, AnyUrl
