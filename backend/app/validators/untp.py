@@ -45,8 +45,6 @@ _BUNDLED_ROOT = Path(_untp_package.__file__).resolve().parent / "bundled"
 class UntpArtefactKind(StrEnum):
     DCC_CREDENTIAL = "dcc_credential"
     DCC_ATTESTATION = "dcc_attestation"
-    DIA_CREDENTIAL = "dia_credential"
-    DIA_REGISTERED_IDENTITY = "dia_registered_identity"
 
 
 _SCHEMA_URL: dict[UntpArtefactKind, str] = {
@@ -55,12 +53,6 @@ _SCHEMA_URL: dict[UntpArtefactKind, str] = {
     ),
     UntpArtefactKind.DCC_ATTESTATION: (
         "https://untp.unece.org/artefacts/schema/v0.7.0/dcc/ConformityAttestation.json"
-    ),
-    UntpArtefactKind.DIA_CREDENTIAL: (
-        "https://untp.unece.org/artefacts/schema/v0.7.0/dia/DigitalIdentityAnchor.json"
-    ),
-    UntpArtefactKind.DIA_REGISTERED_IDENTITY: (
-        "https://untp.unece.org/artefacts/schema/v0.7.0/dia/RegisteredIdentity.json"
     ),
 }
 
@@ -82,8 +74,6 @@ def _subject_schema_kind_for_credential(
     """When validating a VC envelope, return the kind for ``credentialSubject``'s schema."""
     if envelope_kind is UntpArtefactKind.DCC_CREDENTIAL:
         return UntpArtefactKind.DCC_ATTESTATION
-    if envelope_kind is UntpArtefactKind.DIA_CREDENTIAL:
-        return UntpArtefactKind.DIA_REGISTERED_IDENTITY
     return None
 
 
@@ -140,16 +130,12 @@ def detect_untp_artefact_kind(data: Mapping[str, Any]) -> UntpArtefactKind:
     types = [t] if isinstance(t, str) else list(t)
     if "DigitalConformityCredential" in types:
         return UntpArtefactKind.DCC_CREDENTIAL
-    if "DigitalIdentityAnchor" in types:
-        return UntpArtefactKind.DIA_CREDENTIAL
     if "VerifiableCredential" in types:
         raise UntpValidationError(
             f"unsupported VerifiableCredential subtype in type={types!r}"
         )
     if "ConformityAttestation" in types:
         return UntpArtefactKind.DCC_ATTESTATION
-    if "RegisteredIdentity" in types:
-        return UntpArtefactKind.DIA_REGISTERED_IDENTITY
     raise UntpValidationError(f"unknown UNTP document type={types!r}")
 
 
@@ -206,16 +192,6 @@ def _pydantic_model_for_kind(kind: UntpArtefactKind) -> type[BaseModel]:
         )
 
         return ConformityAttestation
-    if kind is UntpArtefactKind.DIA_CREDENTIAL:
-        from app.models.untp.v0_7_0.dia.digital_identity_anchor import (
-            DigitalIdentityAnchor,
-        )
-
-        return DigitalIdentityAnchor
-    if kind is UntpArtefactKind.DIA_REGISTERED_IDENTITY:
-        from app.models.untp.v0_7_0.dia.registered_identity import RegisteredIdentity
-
-        return RegisteredIdentity
     raise UntpValidationError(f"no Pydantic model mapped for {kind!r}")
 
 
@@ -236,8 +212,7 @@ def validate_untp_document_with_checks(
     """
     Run the same checks as :func:`validate_untp_document`, recording each check.
 
-    For ``DigitalConformityCredential`` / ``DigitalIdentityAnchor`` envelopes, also validates
-    ``credentialSubject`` against ``ConformityAttestation`` / ``RegisteredIdentity`` JSON Schema.
+    For ``DigitalConformityCredential`` envelopes, also validates ``credentialSubject`` against ``ConformityAttestation`` JSON Schema.
 
     Stops at the first failing check; later checks are not run (not listed).
     """
@@ -340,7 +315,7 @@ def validate_untp_document(
     kind: UntpArtefactKind | None = None,
 ) -> UntpValidatedDocument:
     """
-    Run JSON Schema validation (envelope and, for DCC/DIA credentials, ``credentialSubject``),
+    Run JSON Schema validation (envelope and, for DCC credentials, ``credentialSubject``),
     JSON-LD → RDF, and Pydantic parsing in order.
 
     If ``kind`` is omitted, it is inferred from ``type`` via

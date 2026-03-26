@@ -28,8 +28,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "untp_samples" / "v0.7
 VCDM_V2_CONTEXT_URL = "https://www.w3.org/ns/credentials/v2"
 
 DCC_SAMPLES = sorted((FIXTURES / "dcc").glob("*.json"))
-DIA_SAMPLES = sorted((FIXTURES / "dia").glob("*.json"))
-ALL_VC_SAMPLES = DCC_SAMPLES + DIA_SAMPLES
+ALL_VC_SAMPLES = DCC_SAMPLES
 
 
 def _load_json_object(path: Path) -> dict[str, Any]:
@@ -103,7 +102,6 @@ def test_json_ld_inline_context_cannot_redefine_protected_untp_prefix() -> None:
 
 def _assert_samples_present() -> None:
     assert DCC_SAMPLES, "missing DCC fixtures under tests/fixtures/untp_samples/v0.7.0/dcc/"
-    assert DIA_SAMPLES, "missing DIA fixtures under tests/fixtures/untp_samples/v0.7.0/dia/"
 
 
 @pytest.mark.parametrize(
@@ -150,10 +148,7 @@ def test_official_samples_full_validation_pipeline(path: Path) -> None:
     assert result.raw.get("@context")
     assert len(result.rdf_nquads.strip()) > 0
     assert result.model is not None
-    if path.parent.name == "dcc":
-        assert result.kind == UntpArtefactKind.DCC_CREDENTIAL
-    else:
-        assert result.kind == UntpArtefactKind.DIA_CREDENTIAL
+    assert result.kind == UntpArtefactKind.DCC_CREDENTIAL
 
 
 @pytest.mark.parametrize(
@@ -168,16 +163,6 @@ def test_dcc_credential_subject_validates_as_conformity_attestation(path: Path) 
     validate_untp_pydantic(subject, UntpArtefactKind.DCC_ATTESTATION)
 
 
-@pytest.mark.parametrize(
-    "path",
-    DIA_SAMPLES,
-    ids=lambda p: p.name,
-)
-def test_dia_credential_subject_validates_as_registered_identity(path: Path) -> None:
-    _assert_samples_present()
-    data = _load_json_object(path)
-    subject = data["credentialSubject"]
-    validate_untp_pydantic(subject, UntpArtefactKind.DIA_REGISTERED_IDENTITY)
 
 
 def test_validate_untp_document_explicit_kind_matches_inference() -> None:
@@ -191,16 +176,8 @@ def test_validate_untp_document_explicit_kind_matches_inference() -> None:
     assert type(inferred.model) is type(explicit.model)
 
 
-@pytest.mark.parametrize(
-    ("fixture", "kind"),
-    [
-        ("dcc", UntpArtefactKind.DCC_CREDENTIAL),
-        ("dia", UntpArtefactKind.DIA_CREDENTIAL),
-    ],
-)
-def test_vc_rejects_unknown_property_on_issuer(
-    fixture: str, kind: UntpArtefactKind
-) -> None:
+def test_vc_rejects_unknown_property_on_issuer() -> None:
+    kind = UntpArtefactKind.DCC_CREDENTIAL
     """
     ``CredentialIssuer`` in the UNTP JSON Schemas sets ``additionalProperties: false``;
     Pydantic uses ``extra="forbid"`` for the same shape. A stray key under ``issuer``
@@ -210,7 +187,7 @@ def test_vc_rejects_unknown_property_on_issuer(
     *top-level* property is not rejected by JSON Schema or the root Pydantic model.
     """
     _assert_samples_present()
-    path = (DCC_SAMPLES if fixture == "dcc" else DIA_SAMPLES)[0]
+    path = DCC_SAMPLES[0]
     data = copy.deepcopy(_load_json_object(path))
     issuer = data["issuer"]
     assert isinstance(issuer, dict)
@@ -223,19 +200,11 @@ def test_vc_rejects_unknown_property_on_issuer(
     assert isinstance(cause, JsonSchemaValidationError | PydanticValidationError)
 
 
-@pytest.mark.parametrize(
-    ("fixture", "kind"),
-    [
-        ("dcc", UntpArtefactKind.DCC_CREDENTIAL),
-        ("dia", UntpArtefactKind.DIA_CREDENTIAL),
-    ],
-)
-def test_vc_rejects_missing_required_name(
-    fixture: str, kind: UntpArtefactKind
-) -> None:
+def test_vc_rejects_missing_required_name() -> None:
+    kind = UntpArtefactKind.DCC_CREDENTIAL
     """``name`` is required on the VC envelope; omitting it must fail JSON Schema / Pydantic."""
     _assert_samples_present()
-    path = (DCC_SAMPLES if fixture == "dcc" else DIA_SAMPLES)[0]
+    path = DCC_SAMPLES[0]
     data = copy.deepcopy(_load_json_object(path))
     del data["name"]
 

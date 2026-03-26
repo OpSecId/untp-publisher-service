@@ -57,14 +57,6 @@ SCHEMA_BUNDLE: dict[str, dict[str, str]] = {
         "path": "v0.7.0/schemas/ConformityCredential.json",
         "digest": "sha256:68e488ea1c2df8ff868ba63414a215087c2fb737b1b8f84909497ff32ee69f63",
     },
-    "https://untp.unece.org/artefacts/schema/v0.7.0/dia/DigitalIdentityAnchor.json": {
-        "path": "v0.7.0/schemas/dia/DigitalIdentityAnchor.json",
-        "digest": "sha256:188358b324050f6d2b00378020e1f1cee0c87dc0462cb42d513dfc9685b7cc74",
-    },
-    "https://untp.unece.org/artefacts/schema/v0.7.0/dia/RegisteredIdentity.json": {
-        "path": "v0.7.0/schemas/dia/RegisteredIdentity.json",
-        "digest": "sha256:ce8120f1198ae405de08d69bc55d17d3f04d5c0bc5e3867deff33cf2ea040b75",
-    },
 }
 
 # Current default UNTP DCC context URL used by the plugin.
