@@ -1,44 +1,75 @@
-from pydantic_settings import BaseSettings
-import os
+from __future__ import annotations
+
 import logging
+import os
 from logging import Logger
-from dotenv import load_dotenv
+
+from pydantic import Field, computed_field, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, ".env"))
 
 
 class Settings(BaseSettings):
+    """
+    Configuration from environment and optional ``.env`` (same directory as this file).
+
+    String settings default to local-development placeholders so ``import app`` works
+    without a populated ``.env``. Override everything real deployments need.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(basedir, ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+        arbitrary_types_allowed=True,
+    )
+
     PROJECT_TITLE: str = "Orgbook Publisher"
     PROJECT_VERSION: str = "v0"
 
     LOG_LEVEL: int = logging.INFO
-    LOG_FORMAT: str = "%(asctime)s | %(levelname)-8s | %(module)s:%(funcName)s:%(lineno)d | %(message)s"
-    LOGGER: Logger = logging.getLogger(__name__)
-    logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
+    LOG_FORMAT: str = (
+        "%(asctime)s | %(levelname)-8s | %(module)s:%(funcName)s:%(lineno)d | %(message)s"
+    )
+    LOGGER: Logger = Field(default_factory=lambda: logging.getLogger(__name__))
 
-    DOMAIN: str = os.getenv("DOMAIN")
+    DOMAIN: str = Field(default="http://localhost")
+    TRACTION_API_URL: str = Field(default="http://localhost")
+    TRACTION_API_KEY: str = Field(default="dev-local")
+    TRACTION_TENANT_ID: str = Field(default="dev-local")
 
-    TRACTION_API_URL: str = os.getenv("TRACTION_API_URL")
-    TRACTION_API_KEY: str = os.getenv("TRACTION_API_KEY")
-    TRACTION_TENANT_ID: str = os.getenv("TRACTION_TENANT_ID")
+    ORGBOOK_URL: str = Field(default="http://localhost")
+    ORGBOOK_SYNC: bool = Field(default=True)
 
-    ORGBOOK_URL: str = os.getenv("ORGBOOK_URL")
-    ORGBOOK_API_URL: str = f"{ORGBOOK_URL}/api/v4"
+    DID_WEB_SERVER_URL: str = Field(default="http://localhost")
+    PUBLISHER_MULTIKEY: str = Field(default="dev-local")
+    ISSUER_REGISTRY_URL: str = Field(default="http://localhost")
 
-    DID_WEB_SERVER_URL: str = os.getenv("DID_WEB_SERVER_URL")
-    PUBLISHER_MULTIKEY: str = os.getenv("PUBLISHER_MULTIKEY")
-
-    ISSUER_REGISTRY_URL: str = os.getenv("ISSUER_REGISTRY_URL")
-
-    SECRET_KEY: str = TRACTION_API_KEY
-    JWT_SECRET: str = TRACTION_API_KEY
+    SECRET_KEY: str = Field(default="dev-local")
+    JWT_SECRET: str = Field(default="dev-local")
     JWT_ALGORITHM: str = "HS256"
 
-    MONGO_HOST: str = os.getenv("MONGO_HOST")
-    MONGO_PORT: str = os.getenv("MONGO_PORT")
-    MONGO_USER: str = os.getenv("MONGO_USER")
-    MONGO_PASSWORD: str = os.getenv("MONGO_PASSWORD")
-    MONGO_DB: str = os.getenv("MONGO_DB")
+    MONGO_HOST: str = Field(default="localhost")
+    MONGO_PORT: str = Field(default="27017")
+    MONGO_USER: str = Field(default="dev")
+    MONGO_PASSWORD: str = Field(default="dev")
+    MONGO_DB: str = Field(default="dev")
+
+    @computed_field
+    @property
+    def ORGBOOK_API_URL(self) -> str:
+        return f"{self.ORGBOOK_URL}/api/v4"
+
+    @computed_field
+    @property
+    def ORGBOOK_VC_SERVICE(self) -> str:
+        return f"{self.ORGBOOK_URL}/api/vc"
+
+    @model_validator(mode="after")
+    def _configure_logging(self) -> Settings:
+        logging.basicConfig(level=self.LOG_LEVEL, format=self.LOG_FORMAT)
+        return self
+
 
 settings = Settings()
