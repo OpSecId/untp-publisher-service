@@ -1,12 +1,17 @@
 """
-UNTP bundled artefacts: canonical URL -> local relative file path.
+Bundled artefacts: canonical URL -> local relative file path.
 
-The files live under ``untp/bundled/`` and are addressed by their published
-UNTP URLs (contexts and schema artefacts). Includes W3C Verifiable Credentials
-Data Model v2.0 at ``https://www.w3.org/ns/credentials/v2`` for offline JSON-LD.
+The files live under ``untp/bundled/``. Schema URLs are UNTP artefacts; context URLs
+include UNTP vocabulary and W3C VCDM 2.0 (for offline JSON-LD processing).
 """
 
 from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+
+# Directory under ``untp/bundled/`` (schemas, contexts, digests for this UNTP release).
+BUNDLE_VERSION: str = "0.7.0"
 
 CONTEXT_BUNDLE: dict[str, dict[str, str]] = {
     "https://www.w3.org/ns/credentials/v2": {
@@ -18,6 +23,30 @@ CONTEXT_BUNDLE: dict[str, dict[str, str]] = {
         "digest": "sha256:e99627e9ddd159eb0d80c8bba9634ca9099597cc547a37246ad3a4ee6384687e",
     },
 }
+
+
+def bundled_context_digests_for_document(data: Mapping[str, Any]) -> dict[str, str]:
+    """
+    For each string URL in ``@context`` that appears in :data:`CONTEXT_BUNDLE`,
+    return that URL mapped to its registered ``digest`` (``sha256:`` hex).
+    """
+    ctx = data.get("@context")
+    if ctx is None:
+        return {}
+    urls: list[str] = []
+    if isinstance(ctx, str):
+        urls = [ctx]
+    elif isinstance(ctx, list):
+        for item in ctx:
+            if isinstance(item, str):
+                urls.append(item)
+    out: dict[str, str] = {}
+    for url in urls:
+        entry = CONTEXT_BUNDLE.get(url)
+        if entry is not None:
+            out[url] = entry["digest"]
+    return out
+
 
 SCHEMA_BUNDLE: dict[str, dict[str, str]] = {
     "https://untp.unece.org/artefacts/schema/v0.7.0/dcc/ConformityAttestation.json": {

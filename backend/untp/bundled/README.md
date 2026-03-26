@@ -6,7 +6,7 @@
 
 Canonical URLs and file metadata are defined in **`untp/releases.py`**:
 
-- **`CONTEXT_BUNDLE`** — JSON-LD `@context` base URL → `{ "path", "digest" }` (paths are `.jsonld` under this directory)
+- **`CONTEXT_BUNDLE`** — JSON-LD `@context` URL → `{ "path", "digest" }` (paths are `.jsonld` under this directory), including [W3C VCDM 2.0](https://www.w3.org/TR/vc-data-model-2.0/) (`https://www.w3.org/ns/credentials/v2`) and UNTP vocabulary context
 - **`SCHEMA_BUNDLE`** — published schema artefact URL → `{ "path", "digest" }` (paths are `.json`)
   - DCC: e.g. [ConformityCredential.json](https://untp.unece.org/artefacts/schema/v0.7.0/dcc/ConformityCredential.json)
   - DIA: [DigitalIdentityAnchor.json](https://untp.unece.org/artefacts/schema/v0.7.0/dia/DigitalIdentityAnchor.json), [RegisteredIdentity.json](https://untp.unece.org/artefacts/schema/v0.7.0/dia/RegisteredIdentity.json)
