@@ -49,7 +49,6 @@ export function IssuersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [scope, setScope] = useState('')
   const [description, setDescription] = useState('')
   const [multikey, setMultikey] = useState('')
@@ -62,7 +61,6 @@ export function IssuersPage() {
 
   const resetRegisterForm = useCallback(() => {
     setName('')
-    setDisplayName('')
     setScope('')
     setDescription('')
     setMultikey('')
@@ -130,10 +128,6 @@ export function IssuersPage() {
       return
     }
     const body: Record<string, string> = { name: n, scope: s, description: d }
-    const disp = displayName.trim()
-    if (disp) {
-      body.display_name = disp
-    }
     const mk = multikey.trim()
     if (mk) {
       body.multikey = mk
@@ -239,19 +233,10 @@ export function IssuersPage() {
                   <Input
                     value={scope}
                     onChange={(e) => setScope(e.target.value)}
-                    placeholder="Legal or programme scope (used for DID namespace slug)"
+                    placeholder="e.g. Petroleum and Natural Gas Act"
                     size="sm"
                   />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Display name</FormLabel>
-                  <Input
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Human-readable label for lists and DID document (optional)"
-                    size="sm"
-                  />
-                  <FormHelperText>If empty, the technical name is shown.</FormHelperText>
+                  <FormHelperText>Legal or programme scope (used for DID namespace slug)</FormHelperText>
                 </FormControl>
               </Stack>
             ) : null}
