@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from pymongo.errors import PyMongoError
 
 from app import build_app
+from app.plugins import MongoClientError
 from config import Settings
 
 
@@ -387,3 +388,105 @@ def test_publisher_credential_types_503_on_mongo_error(
     )
     r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 503
+
+
+def test_publisher_register_issuer_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.post(
+        "/publisher/issuers",
+        json={"name": "A", "scope": "B Act", "description": "C"},
+    )
+    assert r.status_code == 403
+
+
+def test_publisher_register_issuer_success(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Registrar:
+        async def register_issuer(self, registration: dict[str, Any]) -> tuple[dict[str, Any], str]:
+            assert registration["name"] == "Director"
+            assert registration["scope"] == "Test Act"
+            assert "multikey" not in registration
+            return {"id": "did:web:namespace%3Aidentifier"}, "z6MkxAuthorized"
+
+    monkeypatch.setattr("app.routers.publisher_portal.PublisherRegistrar", _Registrar)
+
+    class FakeMongo:
+        def insert(self, collection: str, item: dict[str, Any]) -> None:
+            assert collection == "IssuerRecord"
+            assert item["id"] == "did:web:namespace%3Aidentifier"
+            assert item["name"] == "Director"
+            assert item["authorized_key"] == "z6MkxAuthorized"
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.post(
+        "/publisher/issuers",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "Director", "scope": "Test Act", "description": "Officer role"},
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data["id"] == "did:web:namespace%3Aidentifier"
+    assert data["name"] == "Director"
+    assert "z6Mkx" not in str(data)
+
+
+def test_publisher_register_issuer_strips_blank_multikey(
+    portal_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: dict[str, Any] = {}
+
+    class _Registrar:
+        async def register_issuer(self, registration: dict[str, Any]) -> tuple[dict[str, Any], str]:
+            seen["registration"] = registration
+            return {"id": "did:web:x"}, "k"
+
+    monkeypatch.setattr("app.routers.publisher_portal.PublisherRegistrar", _Registrar)
+
+    class FakeMongo:
+        def insert(self, collection: str, item: dict[str, Any]) -> None:
+            pass
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.post(
+        "/publisher/issuers",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "N", "scope": "S Act", "description": "D", "multikey": "  \t  "},
+    )
+    assert r.status_code == 201
+    assert "multikey" not in seen["registration"]
+
+
+def test_publisher_register_issuer_409_on_duplicate(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Registrar:
+        async def register_issuer(self, registration: dict[str, Any]) -> tuple[dict[str, Any], str]:
+            return {"id": "did:web:dup"}, "k"
+
+    monkeypatch.setattr("app.routers.publisher_portal.PublisherRegistrar", _Registrar)
+
+    class FakeMongo:
+        def insert(self, collection: str, item: dict[str, Any]) -> None:
+            raise MongoClientError()
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.post(
+        "/publisher/issuers",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "N", "scope": "S Act", "description": "D"},
+    )
+    assert r.status_code == 409

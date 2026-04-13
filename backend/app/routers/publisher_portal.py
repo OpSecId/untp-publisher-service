@@ -1,4 +1,4 @@
-"""Read-only portal metadata for the SPA (JWT-authenticated)."""
+"""Portal metadata and limited write APIs for the SPA (JWT-authenticated)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
-from app.plugins.mongodb import MongoClient
+from app.models.mongodb import IssuerRecord
+from app.models.registrations import IssuerRegistration
+from app.plugins import MongoClient, MongoClientError, PublisherRegistrar
 from app.security import (
     TRACTION_WALLET_INTROSPECTION_PATHS,
     decode_portal_token,
@@ -52,6 +54,60 @@ async def publisher_list_issuers(_token: str = Depends(verify_portal_jwt_token))
         raise HTTPException(status_code=503, detail="Issuer store is temporarily unavailable.") from e
 
     return JSONResponse(status_code=200, content={"issuers": out})
+
+
+def _issuer_registration_dict(body: IssuerRegistration) -> dict[str, Any]:
+    # IssuerRegistration.model_dump() already applies exclude_none=True (see app.models.registrations.BaseModel).
+    registration = dict(body.model_dump())
+    mk = registration.get("multikey")
+    if isinstance(mk, str):
+        s = mk.strip()
+        if not s:
+            registration.pop("multikey", None)
+        else:
+            registration["multikey"] = s
+    return registration
+
+
+@router.post("/issuers", tags=["Client"])
+async def publisher_register_issuer(
+    body: IssuerRegistration,
+    _token: str = Depends(verify_portal_jwt_token),
+):
+    """
+    Register an issuer (DID Web + Traction keys + Mongo), same behaviour as
+    ``POST /registrations/issuers`` but authenticated with the portal Bearer instead of ``X-API-Key``.
+    """
+    registration = _issuer_registration_dict(body)
+    registrar = PublisherRegistrar()
+    try:
+        did_document, authorized_key = await registrar.register_issuer(registration)
+    except HTTPException:
+        raise
+    mongo = MongoClient()
+    try:
+        mongo.insert(
+            "IssuerRecord",
+            IssuerRecord(
+                id=did_document.get("id"),
+                name=registration.get("name"),
+                authorized_key=authorized_key,
+            ).model_dump(),
+        )
+    except MongoClientError as e:
+        raise HTTPException(
+            status_code=409,
+            detail="An issuer with this identifier already exists.",
+        ) from e
+
+    iid = did_document.get("id")
+    return JSONResponse(
+        status_code=201,
+        content={
+            "id": str(iid) if iid is not None else "",
+            "name": str(registration.get("name") or ""),
+        },
+    )
 
 
 def _credential_type_portal_summary(doc: dict[str, Any]) -> dict[str, Any]:

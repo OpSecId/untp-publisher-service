@@ -40,6 +40,12 @@ export type PublisherIssuersResponse = {
   issuers: PublisherIssuerRow[]
 }
 
+/** POST /publisher/issuers */
+export type PublisherRegisterIssuerResponse = {
+  id: string
+  name: string
+}
+
 /** GET /publisher/credential-types */
 export type PublisherCredentialTypeSummary = {
   type: string
