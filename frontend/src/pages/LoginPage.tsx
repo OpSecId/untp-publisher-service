@@ -27,17 +27,6 @@ import { PoweredByTraction } from '../components/PoweredByTraction'
 
 type Phase = 'landing' | 'error' | 'manual'
 
-/** RFC 2324–adjacent whimsy; shown only on failed login (no server details). */
-const TEAPOT_ASCII = `
-       ;,
-       )(
-      ;)(;
-     :----:
-   C|=======|
-    |       |
-    \\       /
-     \\_____/`
-
 async function validateSessionJwt(token: string): Promise<boolean> {
   const base = apiBaseUrl().replace(/\/$/, '')
   const url = `${base}/publisher/session`
@@ -75,8 +64,7 @@ export function LoginPage() {
   const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
   const errorBg = useColorModeValue('gray.50', 'gray.900')
   const errorFg = useColorModeValue('gray.900', 'gray.100')
-  const errorPreColor = useColorModeValue('gray.500', 'gray.600')
-  const errorItalicColor = useColorModeValue('gray.500', 'gray.500')
+  const errorHelpColor = useColorModeValue('gray.600', 'gray.400')
   const errorOutlineScheme = useColorModeValue('gray', 'whiteAlpha')
   const manualPageBg = useColorModeValue('bc.lightGrayBg', 'brand.900')
   const manualBlobBlueOpacity = useColorModeValue(0.08, 0.22)
@@ -181,22 +169,13 @@ export function LoginPage() {
         </Flex>
         <Flex flex="1" align="center" justify="center" px={4} py={20}>
           <Box maxW="lg" mx="auto" textAlign="center">
-            <Heading size="lg" fontFamily="heading" mb={10}>
-              Something went wrong
+            <Heading size="lg" fontFamily="heading" mb={4}>
+              We couldn&apos;t sign you in
             </Heading>
-            <Text
-              as="pre"
-              fontFamily="mono"
-              fontSize="xs"
-              color={errorPreColor}
-              whiteSpace="pre"
-              mb={10}
-              userSelect="none"
-            >
-              {TEAPOT_ASCII}
-            </Text>
-            <Text fontSize="sm" color={errorItalicColor} mb={10} fontStyle="italic">
-              418 — short and stout
+            <Text fontSize="md" color={errorHelpColor} mb={10} maxW="md" mx="auto" lineHeight="tall">
+              Common causes: the clipboard was empty or not a valid token, the publisher API did not respond or
+              rejected the session check, or the browser blocked clipboard access (use HTTPS or localhost). No
+              server details are shown here for security.
             </Text>
             <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
               <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
