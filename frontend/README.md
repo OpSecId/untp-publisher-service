@@ -4,9 +4,11 @@ Vite + React + TypeScript + Chakra UI. Sign-in: **Get started** reads the JWT fr
 
 ### Which token?
 
-Sign-in expects the **`access_token` from this publisher API’s** `POST /auth/token` (issuer `client_id` + `client_secret` stored in the publisher’s MongoDB). That JWT is signed with this service’s `JWT_SECRET` and includes `client_id` / `expires`.
+The portal accepts **either**:
 
-**Not supported:** Traction or ACA-Py “agent” / tenant / wallet tokens (e.g. from the agent with a tenant id). Those are minted by Traction with different keys. Using them against `GET /publisher/session` will return **403** — you must use `POST {API}/auth/token` on the UNTP Publisher service first, then use the returned `access_token` in the portal.
+1. **Publisher issuer JWT** — `access_token` from this API’s `POST /auth/token` (`client_id` + `client_secret` in Mongo). Payload uses `client_id` and `expires`, signed with `JWT_SECRET`.
+
+2. **Traction / ACA-Py multitenancy wallet JWT** — the token from the tenant agent (`wallet_id`, `iat`, `exp` in the payload). The publisher does **not** store Traction’s jwt-secret; it calls **`GET {TRACTION_API_URL}/status`** with your `Authorization: Bearer` token. If Traction returns **200**, the session uses that token’s `wallet_id` as `claims.client_id`. The backend must be able to reach `TRACTION_API_URL` (same network / public URL as your deployment).
 
 ## Development
 
@@ -18,7 +20,7 @@ Optional `.env` in this folder (copy from `.env.example`; repo root `.env` is fo
 
 - `VITE_API_BASE_URL` — override API prefix (e.g. `https://publisher.example` in production). **Must be a browser-reachable HTTPS URL** when the SPA is served over HTTPS (not `http://` and not Railway `*.railway.internal` — those trigger mixed-content blocks). Omit it to use same-origin `/api` (then configure your edge/nginx to reverse-proxy `/api` to the API).
 - `VITE_TRACTION_URL` — optional tenant proxy URL for future browser-side Traction calls (CORS must allow your origin).
-- `VITE_DEV_PUBLISHER_TOKEN` — **dev only:** `access_token` from `POST /auth/token` (see **Which token?** above), not a Traction agent token. On `npm run dev`, if session storage has no token yet, it is seeded so you can skip clipboard sign-in. **Never** set this when building a production image — Vite inlines `VITE_*` into the bundle.
+- `VITE_DEV_PUBLISHER_TOKEN` — **dev only:** any JWT the backend accepts for `/publisher/session` (publisher `/auth/token` **or** Traction wallet token if the API is configured for it). On `npm run dev`, if session storage has no token yet, it is seeded so you can skip clipboard sign-in. **Never** set this when building a production image — Vite inlines `VITE_*` into the bundle.
 
 ## Docker (static + nginx)
 

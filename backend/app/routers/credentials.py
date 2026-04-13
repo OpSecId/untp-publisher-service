@@ -13,7 +13,7 @@ from app.plugins import (
     TractionController,
     PublisherRegistrar,
 )
-from app.security import JWTBearer
+from app.security import verify_portal_jwt_token
 import uuid
 import segno
 import copy
@@ -21,7 +21,7 @@ import copy
 router = APIRouter(prefix="/credentials")
 
 
-@router.post("/publish", tags=["Client"], dependencies=[Depends(JWTBearer())])
+@router.post("/publish", tags=["Client"], dependencies=[Depends(verify_portal_jwt_token)])
 async def publish_credential(request_body: Publication):
     settings.LOGGER.info("Publication request")
     credential_input = request_body.model_dump()["credential"]
