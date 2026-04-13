@@ -141,11 +141,6 @@ export function SettingsPage() {
         <Stack spacing={3} fontSize="sm">
           <Row label="Traction API URL" value={env?.traction_api_url} />
           <Row label="Traction tenant ID" value={env?.traction_tenant_id} />
-          <WalletIntrospectionUrls
-            baseUrl={env?.traction_api_url}
-            paths={env?.traction_wallet_introspection_paths}
-            mutedColor={muted}
-          />
           <WalletTractionProbePanel tractionApiUrl={env?.traction_api_url} />
           <Row label="Registry URL" value={env?.registry_url} />
           <Row label="DID web(vh) server" value={env?.did_web_server_url} />
@@ -287,54 +282,3 @@ function Row({ label, value }: { label: string; value: string | undefined }) {
   )
 }
 
-function walletIntrospectionFullUrls(baseUrl: string | undefined, paths: string[] | undefined): string[] {
-  if (!paths?.length) {
-    return []
-  }
-  const base = (baseUrl ?? '').trim().replace(/\/+$/, '')
-  if (!base) {
-    return paths
-  }
-  return paths.map((p) => `${base}${p.startsWith('/') ? p : `/${p}`}`)
-}
-
-function WalletIntrospectionUrls({
-  baseUrl,
-  paths,
-  mutedColor,
-}: {
-  baseUrl: string | undefined
-  paths: string[] | undefined
-  mutedColor: string
-}) {
-  const lines = walletIntrospectionFullUrls(baseUrl, paths)
-  if (!lines.length) {
-    return null
-  }
-  return (
-    <Box>
-      <Text fontSize="xs" color="gray.500" mb={1}>
-        Wallet JWT introspection (backend tries GET with your Bearer, first 200 wins)
-      </Text>
-      <Box
-        as="ol"
-        pl={5}
-        m={0}
-        fontFamily="mono"
-        fontSize="xs"
-        sx={{ listStyleType: 'decimal' }}
-      >
-        {lines.map((url) => (
-          <Box as="li" key={url} wordBreak="break-all" py={0.5}>
-            {url}
-          </Box>
-        ))}
-      </Box>
-      {!baseUrl?.trim() && (
-        <Text fontSize="xs" color={mutedColor} mt={2}>
-          Paths only — set server <code>TRACTION_API_URL</code> to see full probe URLs.
-        </Text>
-      )}
-    </Box>
-  )
-}
