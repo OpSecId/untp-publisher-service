@@ -412,7 +412,7 @@ export function LoginPage() {
                 bgGradient={heroGradient}
                 bgClip="text"
               >
-                Verifiable credentials for your supply chain.
+                Publish conformity credentials for UNTP programs.
               </Heading>
               <Text
                 color={heroBodyMuted}
