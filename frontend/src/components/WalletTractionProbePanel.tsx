@@ -28,9 +28,6 @@ function probeTitle(path: string): string {
   if (path === '/tenant/server/status/config') {
     return 'Server status / config'
   }
-  if (path === '/status') {
-    return 'Status'
-  }
   return path
 }
 

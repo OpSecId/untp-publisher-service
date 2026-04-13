@@ -1,20 +1,26 @@
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Alert,
   AlertIcon,
   Box,
   Button,
-  Divider,
-  FormControl,
-  FormLabel,
   Heading,
+  HStack,
+  Icon,
   Input,
   Skeleton,
   Stack,
   Text,
+  Tooltip,
   useColorModeValue,
   useToast,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
+import { MdInfoOutline } from 'react-icons/md'
 import { apiJson } from '../api/client'
 import { usePublisherSession } from '../hooks/usePublisherSession'
 import { apiBaseUrl } from '../api/baseUrl'
@@ -32,8 +38,9 @@ export function SettingsPage() {
   const [rotating, setRotating] = useState(false)
   const cardBg = useColorModeValue('white', 'gray.700')
   const cardBorder = useColorModeValue('gray.100', 'gray.600')
-  const adminCardBorder = useColorModeValue('orange.100', 'orange.800')
+  const adminCardBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const muted = useColorModeValue('gray.600', 'gray.400')
+  const adminAccordionHover = useColorModeValue('gray.50', 'whiteAlpha.50')
 
   const rotateSecret = async () => {
     setNewSecret(null)
@@ -146,46 +153,95 @@ export function SettingsPage() {
         </Stack>
       </Box>
 
-      <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={adminCardBorder} p={8}>
-        <Heading size="sm" mb={2}>
-          Admin: rotate issuer secret
-        </Heading>
-        <Text fontSize="sm" color={muted} mb={6}>
-          Uses <code>POST /auth/secret</code> with <code>X-API-Key</code> (same key as server{' '}
-          <code>TRACTION_API_KEY</code> in this deployment). The new secret is shown once.
-        </Text>
-        <Stack spacing={4} maxW="md">
-          <FormControl>
-            <FormLabel>X-API-Key</FormLabel>
-            <Input
-              type="password"
-              value={adminKey}
-              onChange={(e) => setAdminKey(e.target.value)}
-              placeholder="Admin API key"
-              autoComplete="off"
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Issuer client ID</FormLabel>
-            <Input
-              value={rotateIssuerId}
-              onChange={(e) => setRotateIssuerId(e.target.value)}
-              placeholder="did:web:…"
-            />
-          </FormControl>
-          <Button colorScheme="orange" onClick={() => void rotateSecret()} isLoading={rotating}>
-            Rotate secret
-          </Button>
-          {newSecret && (
-            <>
-              <Divider />
-              <FormControl>
-                <FormLabel>New client secret (copy now)</FormLabel>
-                <Input readOnly value={newSecret} fontFamily="mono" fontSize="sm" />
-              </FormControl>
-            </>
-          )}
-        </Stack>
+      <Box
+        bg={cardBg}
+        rounded="lg"
+        borderWidth="1px"
+        borderColor={adminCardBorder}
+        overflow="hidden"
+        shadow="sm"
+      >
+        <Accordion allowToggle reduceMotion defaultIndex={[]}>
+          <AccordionItem border="none">
+            <AccordionButton
+              px={3}
+              py={2}
+              minH="unset"
+              display="flex"
+              alignItems="center"
+              gap={2}
+              _hover={{ bg: adminAccordionHover }}
+              _expanded={{ bg: adminAccordionHover }}
+            >
+              <HStack flex="1" spacing={1.5} align="center" minW={0} justify="flex-start">
+                <Text fontSize="xs" fontWeight="semibold" noOfLines={1}>
+                  Admin · Rotate issuer secret
+                </Text>
+                <Tooltip
+                  hasArrow
+                  placement="top"
+                  label="POST /auth/secret with X-API-Key (same value as server TRACTION_API_KEY). New secret is shown once — copy immediately."
+                  fontSize="xs"
+                  maxW="xs"
+                >
+                  <Box as="span" display="inline-flex" onClick={(e: MouseEvent) => e.stopPropagation()} aria-label="Help">
+                    <Icon as={MdInfoOutline} boxSize={3.5} color="gray.500" cursor="help" />
+                  </Box>
+                </Tooltip>
+              </HStack>
+              <AccordionIcon boxSize={4} flexShrink={0} />
+            </AccordionButton>
+            <AccordionPanel px={3} pb={3} pt={0}>
+              <Stack spacing={2}>
+                <HStack spacing={2} flexWrap="wrap" align="flex-end">
+                  <Input
+                    size="sm"
+                    type="password"
+                    value={adminKey}
+                    onChange={(e) => setAdminKey(e.target.value)}
+                    placeholder="X-API-Key"
+                    autoComplete="off"
+                    flex={{ base: '1 1 100%', md: '1 1 140px' }}
+                    minW={{ md: '120px' }}
+                    aria-label="Admin X-API-Key"
+                  />
+                  <Input
+                    size="sm"
+                    value={rotateIssuerId}
+                    onChange={(e) => setRotateIssuerId(e.target.value)}
+                    placeholder="Issuer client_id (e.g. did:web:…)"
+                    flex={{ base: '1 1 100%', md: '2 1 200px' }}
+                    minW={{ md: '160px' }}
+                    fontFamily="mono"
+                    fontSize="xs"
+                    aria-label="Issuer client ID"
+                  />
+                  <Button
+                    size="sm"
+                    colorScheme="orange"
+                    variant="solid"
+                    onClick={() => void rotateSecret()}
+                    isLoading={rotating}
+                    flexShrink={0}
+                  >
+                    Rotate
+                  </Button>
+                </HStack>
+                {newSecret ? (
+                  <Input
+                    size="sm"
+                    readOnly
+                    value={newSecret}
+                    fontFamily="mono"
+                    fontSize="xs"
+                    title="Copy now — not shown again"
+                    aria-label="New client secret"
+                  />
+                ) : null}
+              </Stack>
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
       </Box>
     </Box>
   )
