@@ -173,9 +173,8 @@ export function LoginPage() {
               We couldn&apos;t sign you in
             </Heading>
             <Text fontSize="md" color={errorHelpColor} mb={10} maxW="md" mx="auto" lineHeight="tall">
-              Common causes: the clipboard was empty or not a valid token, the publisher API did not respond or
-              rejected the session check, or the browser blocked clipboard access (use HTTPS or localhost). No
-              server details are shown here for security.
+              Check that you have a valid access token, the publisher API is running and reachable, and—if you used
+              Get started—that this page is on HTTPS or localhost so the browser can read the clipboard.
             </Text>
             <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
               <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
