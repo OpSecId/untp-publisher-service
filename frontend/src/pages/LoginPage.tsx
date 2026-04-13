@@ -400,7 +400,7 @@ export function LoginPage() {
                 fontWeight="600"
                 fontSize="sm"
               >
-                UNTP · DCC · supply-chain disclosure
+                Conformity Credentials
               </Badge>
               <Heading
                 as="h1"
