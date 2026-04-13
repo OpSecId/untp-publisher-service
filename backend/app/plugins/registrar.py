@@ -226,7 +226,9 @@ class PublisherRegistrar:
         credential_template["@context"].append(
             f"https://{settings.DOMAIN}/contexts/{credential_type}/{credential_version}"
         )
-        credential_template["type"].append(credential_type)
+        types_list = credential_template.setdefault("type", [])
+        if credential_type not in types_list:
+            types_list.append(credential_type)
         credential_template["credentialSubject"]["type"].append(
             credential_registration["subjectType"]
         )
