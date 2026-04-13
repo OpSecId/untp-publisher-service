@@ -1,7 +1,19 @@
-import { Box, Button, Flex, Heading, HStack, Icon, Link, Text, VStack } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  Icon,
+  Link,
+  Text,
+  useColorModeValue,
+  VStack,
+} from '@chakra-ui/react'
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { MdDashboard, MdLogout, MdSettings } from 'react-icons/md'
 import { setAccessToken } from '../auth/storage'
+import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
 
 const navItems = [
   { to: '/', label: 'Overview', icon: MdDashboard },
@@ -11,6 +23,23 @@ const navItems = [
 export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
+  const sidebarBg = useColorModeValue('gray.100', 'gray.900')
+  const sidebarColor = useColorModeValue('gray.800', 'gray.100')
+  const brandColor = useColorModeValue('gray.900', 'white')
+  const navActiveBg = useColorModeValue('teal.50', 'whiteAlpha.200')
+  const navActiveColor = useColorModeValue('teal.800', 'white')
+  const navIdleColor = useColorModeValue('gray.600', 'gray.300')
+  const sidebarBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const mainBg = useColorModeValue('gray.50', 'gray.800')
+  const mobileBarBg = useColorModeValue('gray.100', 'gray.900')
+  const mobileBarColor = useColorModeValue('gray.900', 'white')
+  const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
+  const navHoverInactiveBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.150')
+  const signOutScheme = useColorModeValue('gray', 'whiteAlpha')
+  const signOutMuted = useColorModeValue('gray.600', 'gray.400')
+  const signOutHoverFg = useColorModeValue('gray.900', 'white')
+  const signOutHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const mobileSignOutScheme = useColorModeValue('gray', 'whiteAlpha')
 
   const logout = () => {
     setAccessToken(null)
@@ -23,15 +52,18 @@ export function AppShell() {
         as="aside"
         w="260px"
         flexShrink={0}
-        bg="gray.900"
-        color="gray.100"
+        bg={sidebarBg}
+        color={sidebarColor}
         px={6}
         py={8}
         display={{ base: 'none', md: 'block' }}
       >
-        <Heading size="md" fontWeight="700" letterSpacing="-0.02em" mb={10} color="white">
-          UNTP Publisher
-        </Heading>
+        <Flex align="center" justify="space-between" gap={3} mb={10}>
+          <Heading size="md" fontWeight="700" letterSpacing="-0.02em" color={brandColor}>
+            UNTP Publisher
+          </Heading>
+          <ColorModeToggle variant={toggleVariant} />
+        </Flex>
         <VStack align="stretch" spacing={1}>
           {navItems.map(({ to, label, icon }) => {
             const active = location.pathname === to
@@ -47,9 +79,13 @@ export function AppShell() {
                 py={2.5}
                 rounded="lg"
                 fontWeight="500"
-                bg={active ? 'whiteAlpha.200' : 'transparent'}
-                color={active ? 'white' : 'gray.300'}
-                _hover={{ bg: 'whiteAlpha.150', textDecoration: 'none', color: 'white' }}
+                bg={active ? navActiveBg : 'transparent'}
+                color={active ? navActiveColor : navIdleColor}
+                _hover={{
+                  bg: active ? navActiveBg : navHoverInactiveBg,
+                  textDecoration: 'none',
+                  color: navActiveColor,
+                }}
               >
                 <Icon as={icon} boxSize={5} />
                 {label}
@@ -57,16 +93,19 @@ export function AppShell() {
             )
           })}
         </VStack>
-        <Box mt={12} pt={8} borderTopWidth="1px" borderColor="whiteAlpha.200">
+        <Box mt={12} pt={8} borderTopWidth="1px" borderColor={sidebarBorder}>
           <Button
             variant="ghost"
-            colorScheme="whiteAlpha"
+            colorScheme={signOutScheme}
             justifyContent="flex-start"
             w="full"
             leftIcon={<Icon as={MdLogout} boxSize={5} />}
             onClick={logout}
-            color="gray.400"
-            _hover={{ color: 'white', bg: 'whiteAlpha.100' }}
+            color={signOutMuted}
+            _hover={{
+              color: signOutHoverFg,
+              bg: signOutHoverBg,
+            }}
           >
             Sign out
           </Button>
@@ -74,18 +113,15 @@ export function AppShell() {
       </Box>
 
       <Flex direction="column" flex="1" minW={0}>
-        <Box
-          display={{ base: 'block', md: 'none' }}
-          bg="gray.900"
-          color="white"
-          px={4}
-          py={3}
-        >
-          <Flex align="center" justify="space-between" mb={3}>
+        <Box display={{ base: 'block', md: 'none' }} bg={mobileBarBg} color={mobileBarColor} px={4} py={3}>
+          <Flex align="center" justify="space-between" mb={3} gap={2}>
             <Text fontWeight="700">UNTP Publisher</Text>
-            <Button size="sm" variant="ghost" colorScheme="whiteAlpha" onClick={logout}>
-              Sign out
-            </Button>
+            <HStack spacing={1}>
+              <ColorModeToggle variant={toggleVariant} />
+              <Button size="sm" variant="ghost" colorScheme={mobileSignOutScheme} onClick={logout}>
+                Sign out
+              </Button>
+            </HStack>
           </Flex>
           <HStack spacing={2} flexWrap="wrap">
             {navItems.map(({ to, label }) => (
@@ -102,7 +138,7 @@ export function AppShell() {
             ))}
           </HStack>
         </Box>
-        <Box as="main" flex="1" p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
+        <Box as="main" flex="1" bg={mainBg} p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
           <Outlet />
         </Box>
       </Flex>

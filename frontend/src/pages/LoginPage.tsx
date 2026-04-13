@@ -7,15 +7,22 @@ import {
   Heading,
   Icon,
   SimpleGrid,
+  HStack,
   Stack,
   Text,
   Textarea,
+  useColorModeValue,
 } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MdOutlineHub, MdOutlineSecurity, MdOutlineSpeed } from 'react-icons/md'
+import {
+  MdOutlineAccountTree,
+  MdOutlineFactCheck,
+  MdOutlineVisibility,
+} from 'react-icons/md'
 import { apiBaseUrl } from '../api/baseUrl'
 import { getAccessToken, setAccessToken } from '../auth/storage'
+import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
 
 type Phase = 'landing' | 'error' | 'manual'
 
@@ -41,19 +48,19 @@ async function validateSessionJwt(token: string): Promise<boolean> {
 
 const features = [
   {
-    icon: MdOutlineHub,
-    title: 'Issuance pipeline',
-    body: 'Wire credential types, templates, and Traction so your line of business can publish with confidence.',
+    icon: MdOutlineAccountTree,
+    title: 'Supply-chain attestations',
+    body: 'Register Digital Conformity Credential (DCC) templates and publish structured, machine-readable claims that move with products, facilities, and parties—not ad-hoc PDFs.',
   },
   {
-    icon: MdOutlineSpeed,
-    title: 'Operational clarity',
-    body: 'Session-aware overview of tenant wiring, registry endpoints, and deployment context in one place.',
+    icon: MdOutlineFactCheck,
+    title: 'Governance & compliance posture',
+    body: 'Separate admin and client surfaces: issuer onboarding, secret rotation, and tenant-scoped issuance controls aligned with how regulated programs expect separation of duties.',
   },
   {
-    icon: MdOutlineSecurity,
-    title: 'Clipboard sign-in',
-    body: 'Copy your access token, then use Get started — the console reads the clipboard and validates with the API before storing a session.',
+    icon: MdOutlineVisibility,
+    title: 'Transparency by design',
+    body: 'Session and environment disclosure (registry, traction, DID web) so operators and auditors can trace which endpoints and identities back a published credential.',
   },
 ] as const
 
@@ -63,6 +70,66 @@ export function LoginPage() {
   const [phase, setPhase] = useState<Phase>('landing')
   const [jwt, setJwt] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
+  const errorBg = useColorModeValue('gray.50', 'gray.900')
+  const errorFg = useColorModeValue('gray.900', 'gray.100')
+  const errorPreColor = useColorModeValue('gray.500', 'gray.600')
+  const errorItalicColor = useColorModeValue('gray.500', 'gray.500')
+  const errorOutlineScheme = useColorModeValue('gray', 'whiteAlpha')
+  const manualPageBg = useColorModeValue('gray.50', '#0a0e27')
+  const manualPurpleOpacity = useColorModeValue(0.08, 0.22)
+  const manualBlueOpacity = useColorModeValue(0.07, 0.2)
+  const manualBackColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const manualPanelBorder = useColorModeValue('gray.200', 'whiteAlpha.300')
+
+  const landingBg = useColorModeValue('gray.50', '#070b1a')
+  const landingColor = useColorModeValue('gray.900', 'white')
+  const landingMesh = useColorModeValue(
+    'linear(to-br, #ecfeff 0%, #f8fafc 35%, #e0f2f1 65%, #f1f5f9 100%)',
+    'linear(to-br, #040814 0%, #0c1528 40%, #0a1a1c 70%, #120a1e 100%)',
+  )
+  const blobPurple = useColorModeValue(0.1, 0.28)
+  const blobTeal = useColorModeValue(0.08, 0.2)
+  const blobCyan = useColorModeValue(0.06, 0.12)
+  const blobBlue = useColorModeValue(0.06, 0.12)
+  const gridBgImage = useColorModeValue(
+    'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 0)',
+    'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0)',
+  )
+  const gridOpacity = useColorModeValue(0.5, 0.35)
+  const headerBadgeBg = useColorModeValue('white', 'whiteAlpha.100')
+  const headerBadgeColor = useColorModeValue('gray.700', 'whiteAlpha.900')
+  const headerBadgeBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const heroGradient = useColorModeValue(
+    'linear(to-r, gray.900, teal.700, cyan.800)',
+    'linear(to-r, white, cyan.100, teal.200)',
+  )
+  const heroBodyMuted = useColorModeValue('gray.600', 'whiteAlpha.800')
+  const heroEmphasis = useColorModeValue('teal.700', 'teal.200')
+  const outlineBtnBorder = useColorModeValue('gray.300', 'whiteAlpha.400')
+  const outlineBtnColor = useColorModeValue('gray.800', 'white')
+  const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+  const outlineBtnHoverBorder = useColorModeValue('gray.400', 'whiteAlpha.600')
+  const authHintMuted = useColorModeValue('gray.500', 'whiteAlpha.500')
+  const authAuthColor = useColorModeValue('teal.600', 'teal.300')
+  const authEndpointColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const glassBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const glassBg = useColorModeValue('rgba(255,255,255,0.94)', 'rgba(255,255,255,0.80)')
+  const glassGlowOpacity = useColorModeValue(0.22, 0.35)
+  const glassCardShadow = useColorModeValue(
+    '0 25px 80px rgba(15, 118, 110, 0.12)',
+    '0 25px 80px rgba(0,0,0,0.35)',
+  )
+  const featuresKicker = useColorModeValue('teal.700', 'whiteAlpha.500')
+  const featuresLead = useColorModeValue('gray.600', 'whiteAlpha.600')
+  const featuresLeadStrong = useColorModeValue('gray.800', 'whiteAlpha.800')
+  const featureCardBg = useColorModeValue('rgba(255,255,255,0.92)', 'rgba(255,255,255,0.60)')
+  const featureCardBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const featureHoverShadow = useColorModeValue(
+    '0 20px 50px rgba(15, 118, 110, 0.12)',
+    '0 20px 50px rgba(0,0,0,0.25)',
+  )
 
   useEffect(() => {
     if (getAccessToken()) navigate('/', { replace: true })
@@ -109,7 +176,10 @@ export function LoginPage() {
 
   if (phase === 'error') {
     return (
-      <Box minH="100vh" bg="gray.900" color="gray.100" px={4} py={16}>
+      <Box minH="100vh" bg={errorBg} color={errorFg} px={4} py={16} position="relative">
+        <Flex position="absolute" top={4} right={4} justify="flex-end">
+          <ColorModeToggle variant={toggleVariant} />
+        </Flex>
         <Box maxW="lg" mx="auto" textAlign="center">
           <Heading size="lg" fontFamily="heading" mb={10}>
             Something went wrong
@@ -118,21 +188,21 @@ export function LoginPage() {
             as="pre"
             fontFamily="mono"
             fontSize="xs"
-            color="gray.600"
+            color={errorPreColor}
             whiteSpace="pre"
             mb={10}
             userSelect="none"
           >
             {TEAPOT_ASCII}
           </Text>
-          <Text fontSize="sm" color="gray.500" mb={10} fontStyle="italic">
+          <Text fontSize="sm" color={errorItalicColor} mb={10} fontStyle="italic">
             418 — short and stout
           </Text>
           <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
             <Button colorScheme="blue" isLoading={loading} onClick={() => void signInFromClipboard()}>
               Try again
             </Button>
-            <Button variant="outline" colorScheme="whiteAlpha" onClick={() => setPhase('manual')}>
+            <Button variant="outline" colorScheme={errorOutlineScheme} onClick={() => setPhase('manual')}>
               Enter token manually
             </Button>
           </Stack>
@@ -143,7 +213,10 @@ export function LoginPage() {
 
   if (phase === 'manual') {
     return (
-      <Box minH="100vh" position="relative" overflow="hidden" bg="#0a0e27">
+      <Box minH="100vh" position="relative" overflow="hidden" bg={manualPageBg}>
+        <Flex position="absolute" top={4} right={4} zIndex={2} justify="flex-end">
+          <ColorModeToggle variant={toggleVariant} />
+        </Flex>
         <Box
           position="absolute"
           top="-25%"
@@ -152,7 +225,7 @@ export function LoginPage() {
           h={{ base: '280px', md: '480px' }}
           borderRadius="full"
           bg="purple.500"
-          opacity={0.22}
+          opacity={manualPurpleOpacity}
           filter="blur(100px)"
           pointerEvents="none"
         />
@@ -164,13 +237,13 @@ export function LoginPage() {
           h={{ base: '260px', md: '420px' }}
           borderRadius="full"
           bg="blue.500"
-          opacity={0.2}
+          opacity={manualBlueOpacity}
           filter="blur(90px)"
           pointerEvents="none"
         />
         <Box position="relative" zIndex={1} py={{ base: 10, md: 16 }} px={4}>
           <Box maxW="md" mx="auto">
-            <Button variant="link" color="whiteAlpha.700" mb={8} onClick={() => setPhase('landing')}>
+            <Button variant="link" color={manualBackColor} mb={8} onClick={() => setPhase('landing')}>
               Back
             </Button>
             <Box
@@ -180,7 +253,7 @@ export function LoginPage() {
               rounded="2xl"
               shadow="2xl"
               borderWidth="1px"
-              borderColor="whiteAlpha.300"
+              borderColor={manualPanelBorder}
               p={{ base: 6, md: 8 }}
             >
               <Heading size="md" mb={6} fontFamily="heading">
@@ -213,14 +286,9 @@ export function LoginPage() {
   }
 
   return (
-    <Box minH="100vh" position="relative" overflow="hidden" bg="#070b1a" color="white">
+    <Box minH="100vh" position="relative" overflow="hidden" bg={landingBg} color={landingColor}>
       {/* Mesh + grid (Horizon-style depth) */}
-      <Box
-        position="absolute"
-        inset={0}
-        bgGradient="linear(to-br, #070b1a 0%, #121a3d 45%, #1a0f2e 100%)"
-        pointerEvents="none"
-      />
+      <Box position="absolute" inset={0} bgGradient={landingMesh} pointerEvents="none" />
       <Box
         position="absolute"
         top="-18%"
@@ -229,7 +297,7 @@ export function LoginPage() {
         h={{ base: 'min(90vw, 420px)', md: '560px' }}
         borderRadius="full"
         bg="purple.500"
-        opacity={0.28}
+        opacity={blobPurple}
         filter="blur(110px)"
         pointerEvents="none"
       />
@@ -240,9 +308,21 @@ export function LoginPage() {
         w={{ base: 'min(85vw, 380px)', md: '520px' }}
         h={{ base: 'min(85vw, 380px)', md: '520px' }}
         borderRadius="full"
-        bg="cyan.400"
-        opacity={0.18}
+        bg="teal.400"
+        opacity={blobTeal}
         filter="blur(100px)"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        top="55%"
+        right="12%"
+        w={{ base: '200px', md: '320px' }}
+        h={{ base: '200px', md: '320px' }}
+        borderRadius="full"
+        bg="cyan.500"
+        opacity={blobCyan}
+        filter="blur(80px)"
         pointerEvents="none"
       />
       <Box
@@ -254,15 +334,15 @@ export function LoginPage() {
         h="min(120vw, 900px)"
         borderRadius="full"
         bg="blue.600"
-        opacity={0.12}
+        opacity={blobBlue}
         filter="blur(130px)"
         pointerEvents="none"
       />
       <Box
         position="absolute"
         inset={0}
-        opacity={0.35}
-        bgImage="radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0)"
+        opacity={gridOpacity}
+        bgImage={gridBgImage}
         bgSize="32px 32px"
         pointerEvents="none"
       />
@@ -276,22 +356,26 @@ export function LoginPage() {
           py={6}
           align="center"
           justify="space-between"
+          gap={4}
         >
           <Text fontWeight="800" fontSize="lg" letterSpacing="-0.04em" fontFamily="heading">
             UNTP Publisher
           </Text>
-          <Badge
-            px={3}
-            py={1}
-            borderRadius="full"
-            bg="whiteAlpha.100"
-            color="whiteAlpha.900"
-            fontWeight="600"
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-          >
-            Console
-          </Badge>
+          <HStack spacing={3}>
+            <ColorModeToggle variant={toggleVariant} />
+            <Badge
+              px={3}
+              py={1}
+              borderRadius="full"
+              bg={headerBadgeBg}
+              color={headerBadgeColor}
+              fontWeight="600"
+              borderWidth="1px"
+              borderColor={headerBadgeBorder}
+            >
+              Governance console
+            </Badge>
+          </HStack>
         </Flex>
 
         <Container maxW="7xl" px={{ base: 5, md: 10 }} pt={{ base: 6, md: 10 }} pb={{ base: 20, md: 28 }}>
@@ -309,7 +393,7 @@ export function LoginPage() {
                 fontWeight="600"
                 fontSize="sm"
               >
-                Built for UNTP issuance
+                UNTP · DCC · supply-chain disclosure
               </Badge>
               <Heading
                 as="h1"
@@ -318,20 +402,22 @@ export function LoginPage() {
                 letterSpacing="-0.04em"
                 lineHeight="1.05"
                 fontSize={{ base: '2.75rem', sm: '3.5rem', md: '4rem', lg: '4.5rem' }}
-                bgGradient="linear(to-r, white, white, cyan.200)"
+                bgGradient={heroGradient}
                 bgClip="text"
               >
-                Publish credentials with clarity.
+                Machine-readable claims. Auditable chain of custody.
               </Heading>
               <Text
-                color="whiteAlpha.800"
+                color={heroBodyMuted}
                 fontSize={{ base: 'lg', md: 'xl' }}
                 lineHeight="tall"
                 maxW={{ base: '100%', lg: '95%' }}
               >
-                A focused workspace for credential templates, tenant wiring, and session health—so
-                your team can move from registration to issuance without digging through raw API
-                responses.
+                Operate the publisher as a <Text as="span" fontWeight="700" color={heroEmphasis}>compliance
+                control plane</Text> for UNTP credentials: register schemas and overlays, bind issuers
+                to Traction and DID web, and issue conformity attestations your supply-chain partners
+                can verify—without losing transparency into which registries and endpoints back each
+                assertion.
               </Text>
               <Stack
                 direction={{ base: 'column', sm: 'row' }}
@@ -346,14 +432,14 @@ export function LoginPage() {
                   fontSize="md"
                   fontWeight="700"
                   rounded="xl"
-                  bgGradient="linear(to-r, blue.400, purple.500)"
+                  bgGradient="linear(to-r, teal.400, cyan.600)"
                   color="white"
                   isLoading={loading}
-                  loadingText="Signing in"
+                  loadingText="Authenticating"
                   _hover={{
                     opacity: 0.95,
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 12px 40px rgba(99, 102, 241, 0.45)',
+                    boxShadow: '0 12px 40px rgba(45, 212, 191, 0.35)',
                   }}
                   _active={{ transform: 'translateY(0)' }}
                   transition="all 0.2s ease"
@@ -367,18 +453,33 @@ export function LoginPage() {
                   px={8}
                   fontSize="md"
                   variant="outline"
-                  borderColor="whiteAlpha.400"
-                  color="white"
+                  borderColor={outlineBtnBorder}
+                  color={outlineBtnColor}
                   rounded="xl"
-                  _hover={{ bg: 'whiteAlpha.100', borderColor: 'whiteAlpha.600' }}
+                  _hover={{ bg: outlineBtnHoverBg, borderColor: outlineBtnHoverBorder }}
                   onClick={scrollToFeatures}
                 >
-                  Explore features
+                  Capability stack
                 </Button>
               </Stack>
-              <Text fontSize="sm" color="whiteAlpha.500" maxW="md" mx={{ base: 'auto', lg: 0 }}>
-                Copy your access token to the clipboard first — Get started reads it automatically
-                (HTTPS or localhost only).
+              <Text
+                as="p"
+                fontSize="sm"
+                color={authHintMuted}
+                maxW="md"
+                mx={{ base: 'auto', lg: 0 }}
+                fontFamily="mono"
+                letterSpacing="-0.01em"
+              >
+                <Text as="span" color={authAuthColor} fontWeight="600">
+                  AUTH
+                </Text>{' '}
+                Place a Bearer JWT in the system clipboard, then invoke Get started — clipboard API
+                requires HTTPS or localhost; token is validated against{' '}
+                <Text as="span" color={authEndpointColor}>
+                  GET /publisher/session
+                </Text>{' '}
+                before session storage.
               </Text>
             </Stack>
 
@@ -393,29 +494,45 @@ export function LoginPage() {
                 position="absolute"
                 inset="-2px"
                 borderRadius="3xl"
-                bgGradient="linear(to-br, whiteAlpha.400, transparent, purple.400)"
-                opacity={0.35}
+                bgGradient="linear(to-br, whiteAlpha.400, transparent, teal.500)"
+                opacity={glassGlowOpacity}
                 filter="blur(1px)"
               />
               <Box
                 position="relative"
                 rounded="3xl"
                 borderWidth="1px"
-                borderColor="whiteAlpha.200"
-                bg="whiteAlpha.80"
+                borderColor={glassBorder}
+                bg={glassBg}
                 backdropFilter="blur(24px)"
-                boxShadow="0 25px 80px rgba(0,0,0,0.35)"
+                boxShadow={glassCardShadow}
                 p={{ base: 6, md: 8 }}
                 color="gray.800"
               >
-                <Text fontSize="xs" fontWeight="700" color="gray.500" letterSpacing="0.08em" mb={6}>
-                  SESSION PREVIEW
+                <Text
+                  fontSize="xs"
+                  fontWeight="700"
+                  color="gray.500"
+                  letterSpacing="0.12em"
+                  mb={6}
+                  fontFamily="mono"
+                >
+                  DISCLOSURE SURFACE · READ-ONLY
                 </Text>
                 <Stack spacing={5}>
                   {[
-                    { label: 'Overview', sub: 'Health, claims, deployment summary' },
-                    { label: 'Settings', sub: 'Registry URL, Traction context, admin tools' },
-                    { label: 'Secure entry', sub: 'Clipboard token validated before dashboard load' },
+                    {
+                      label: 'Lineage & topology',
+                      sub: 'JWT claims, tenant id, traction base URL — inputs auditors expect for traceability.',
+                    },
+                    {
+                      label: 'Policy bindings',
+                      sub: 'Registry and DID-web endpoints surfaced for governance reviews and cross-system alignment.',
+                    },
+                    {
+                      label: 'Non-repudiation entry',
+                      sub: 'Clipboard-bound credential; validated server-side before any client-side persistence.',
+                    },
                   ].map((row) => (
                     <Flex
                       key={row.label}
@@ -432,7 +549,7 @@ export function LoginPage() {
                         w={2}
                         h={2}
                         borderRadius="full"
-                        bgGradient="linear(to-br, blue.400, purple.500)"
+                        bgGradient="linear(to-br, teal.400, cyan.600)"
                         flexShrink={0}
                       />
                       <Box>
@@ -455,12 +572,12 @@ export function LoginPage() {
               textAlign="center"
               fontSize="sm"
               fontWeight="700"
-              color="whiteAlpha.500"
+              color={featuresKicker}
               letterSpacing="0.2em"
               textTransform="uppercase"
               mb={4}
             >
-              Why teams use it
+              Disclosure · governance · issuance
             </Text>
             <Heading
               textAlign="center"
@@ -468,26 +585,42 @@ export function LoginPage() {
               fontSize={{ base: '2xl', md: '3xl' }}
               fontWeight="800"
               letterSpacing="-0.03em"
-              mb={12}
-              maxW="2xl"
+              mb={4}
+              maxW="3xl"
               mx="auto"
             >
-              Everything you need before you hit publish
+              From controlled registration to attestable digital product data
             </Heading>
+            <Text
+              textAlign="center"
+              color={featuresLead}
+              fontSize="md"
+              maxW="2xl"
+              mx="auto"
+              mb={12}
+              lineHeight="tall"
+            >
+              Align issuer programs with{' '}
+              <Text as="span" fontWeight="600" color={featuresLeadStrong}>
+                transparency
+              </Text>{' '}
+              obligations: structured credentials, explicit resolver graph, and operator-visible
+              configuration—so compliance teams can reason about what ships to verifiers.
+            </Text>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
               {features.map(({ icon, title, body }) => (
                 <Box
                   key={title}
                   p={8}
                   rounded="2xl"
-                  bg="whiteAlpha.60"
+                  bg={featureCardBg}
                   backdropFilter="blur(16px)"
                   borderWidth="1px"
-                  borderColor="whiteAlpha.200"
+                  borderColor={featureCardBorder}
                   transition="transform 0.2s ease, box-shadow 0.2s ease"
                   _hover={{
                     transform: 'translateY(-4px)',
-                    boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+                    boxShadow: featureHoverShadow,
                   }}
                 >
                   <Flex
@@ -496,7 +629,7 @@ export function LoginPage() {
                     align="center"
                     justify="center"
                     rounded="xl"
-                    bgGradient="linear(to-br, blue.500, purple.600)"
+                    bgGradient="linear(to-br, teal.500, cyan.700)"
                     color="white"
                     mb={5}
                   >

@@ -11,6 +11,7 @@ import {
   StatLabel,
   StatNumber,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { ApiError, apiFetch, apiJson } from '../api/client'
@@ -29,6 +30,10 @@ export function OverviewPage() {
   const [serverOk, setServerOk] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const cardBg = useColorModeValue('white', 'gray.700')
+  const cardBorder = useColorModeValue('gray.100', 'gray.600')
+  const mutedText = useColorModeValue('gray.600', 'gray.400')
+  const sectionTitle = useColorModeValue('gray.700', 'gray.200')
 
   useEffect(() => {
     let cancelled = false
@@ -84,7 +89,7 @@ export function OverviewPage() {
       <Heading size="lg" mb={2} fontFamily="heading">
         Overview
       </Heading>
-      <Text color="gray.600" mb={10}>
+      <Text color={mutedText} mb={10}>
         Signed in as <strong>{claims?.client_id}</strong>
       </Text>
 
@@ -92,11 +97,11 @@ export function OverviewPage() {
         <Stat
           px={6}
           py={5}
-          bg="white"
+          bg={cardBg}
           shadow="sm"
           rounded="xl"
           borderWidth="1px"
-          borderColor="gray.100"
+          borderColor={cardBorder}
         >
           <StatLabel>API health</StatLabel>
           <StatNumber fontSize="lg">
@@ -107,11 +112,11 @@ export function OverviewPage() {
         <Stat
           px={6}
           py={5}
-          bg="white"
+          bg={cardBg}
           shadow="sm"
           rounded="xl"
           borderWidth="1px"
-          borderColor="gray.100"
+          borderColor={cardBorder}
         >
           <StatLabel>Token expiry</StatLabel>
           <StatNumber fontSize="md">{claims ? formatExpiry(claims.expires) : '—'}</StatNumber>
@@ -119,8 +124,8 @@ export function OverviewPage() {
         </Stat>
       </SimpleGrid>
 
-      <Box bg="white" rounded="xl" shadow="sm" borderWidth="1px" borderColor="gray.100" p={8}>
-        <Heading size="sm" mb={4} color="gray.700">
+      <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8}>
+        <Heading size="sm" mb={4} color={sectionTitle}>
           Deployment
         </Heading>
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>

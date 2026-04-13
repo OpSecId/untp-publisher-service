@@ -11,6 +11,7 @@ import {
   Skeleton,
   Stack,
   Text,
+  useColorModeValue,
   useToast,
 } from '@chakra-ui/react'
 import { useState } from 'react'
@@ -27,6 +28,10 @@ export function SettingsPage() {
   const [rotateIssuerId, setRotateIssuerId] = useState('')
   const [newSecret, setNewSecret] = useState<string | null>(null)
   const [rotating, setRotating] = useState(false)
+  const cardBg = useColorModeValue('white', 'gray.700')
+  const cardBorder = useColorModeValue('gray.100', 'gray.600')
+  const adminCardBorder = useColorModeValue('orange.100', 'orange.800')
+  const muted = useColorModeValue('gray.600', 'gray.400')
 
   const rotateSecret = async () => {
     setNewSecret(null)
@@ -83,11 +88,11 @@ export function SettingsPage() {
       <Heading size="lg" mb={2} fontFamily="heading">
         Settings
       </Heading>
-      <Text color="gray.600" mb={10}>
+      <Text color={muted} mb={10}>
         Environment surfaced by the API for your JWT, plus optional admin actions.
       </Text>
 
-      <Box bg="white" rounded="xl" shadow="sm" borderWidth="1px" borderColor="gray.100" p={8} mb={8}>
+      <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8} mb={8}>
         <Heading size="sm" mb={4}>
           Browser / SPA
         </Heading>
@@ -105,7 +110,7 @@ export function SettingsPage() {
         </Stack>
       </Box>
 
-      <Box bg="white" rounded="xl" shadow="sm" borderWidth="1px" borderColor="gray.100" p={8} mb={8}>
+      <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8} mb={8}>
         <Heading size="sm" mb={4}>
           Server environment
         </Heading>
@@ -118,11 +123,11 @@ export function SettingsPage() {
         </Stack>
       </Box>
 
-      <Box bg="white" rounded="xl" shadow="sm" borderWidth="1px" borderColor="orange.100" p={8}>
+      <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={adminCardBorder} p={8}>
         <Heading size="sm" mb={2}>
           Admin: rotate issuer secret
         </Heading>
-        <Text fontSize="sm" color="gray.600" mb={6}>
+        <Text fontSize="sm" color={muted} mb={6}>
           Uses <code>POST /auth/secret</code> with <code>X-API-Key</code> (same key as server{' '}
           <code>TRACTION_API_KEY</code> in this deployment). The new secret is shown once.
         </Text>
