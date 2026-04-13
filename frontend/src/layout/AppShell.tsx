@@ -30,7 +30,7 @@ export function AppShell() {
         display={{ base: 'none', md: 'block' }}
       >
         <Heading size="md" fontWeight="700" letterSpacing="-0.02em" mb={10} color="white">
-          Publisher
+          UNTP Publisher
         </Heading>
         <VStack align="stretch" spacing={1}>
           {navItems.map(({ to, label, icon }) => {
@@ -82,7 +82,7 @@ export function AppShell() {
           py={3}
         >
           <Flex align="center" justify="space-between" mb={3}>
-            <Text fontWeight="700">Publisher</Text>
+            <Text fontWeight="700">UNTP Publisher</Text>
             <Button size="sm" variant="ghost" colorScheme="whiteAlpha" onClick={logout}>
               Sign out
             </Button>

@@ -1,4 +1,4 @@
-export const ACCESS_TOKEN_KEY = 'orgbook_publisher_access_token'
+export const ACCESS_TOKEN_KEY = 'untp_publisher_access_token'
 
 export function getAccessToken(): string | null {
   try {

@@ -1,5 +1,5 @@
 # Publishing credentials
-Instructions for lines of business to obtain Verifiable Credentials from the publisher. OrgBook may be used to **resolve entities** (e.g. by `entityId`) when publishing; issued credentials are **not** forwarded to OrgBook for search.
+Instructions for lines of business to obtain verifiable credentials from the **UNTP Publisher**. Your configured **entity registry** is used to **resolve entities** (e.g. by `entityId`) when publishing; issued credentials are not automatically indexed for public search unless you integrate that separately.
 
 ## Integration
 ### Issuer registration
@@ -21,7 +21,7 @@ Instructions for lines of business to obtain Verifiable Credentials from the pub
 
 ### Credential publication
 #### By api
-1. Request an access token from the orgbook publisher
+1. Request an access token from the UNTP Publisher
     ```json
     {
         "client_id": "",

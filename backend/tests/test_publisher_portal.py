@@ -20,7 +20,7 @@ def portal_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="https://traction.example",
-        ORGBOOK_URL="https://orgbook.example",
+        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )
@@ -53,3 +53,4 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
     assert data["claims"]["client_id"] == "did:web:issuer"
     assert data["environment"]["project_title"] == "Test Publisher"
     assert data["environment"]["traction_tenant_id"] == "tenant-1"
+    assert data["environment"]["registry_url"] == "https://registry.example"

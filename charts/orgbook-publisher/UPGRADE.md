@@ -58,10 +58,10 @@ Run `mongodump` from inside the primary replica pod:
 kubectl exec -it "${RELEASE}-mongodb-0" -n "${NAMESPACE}" -- \
   mongodump \
     --host "localhost:27017" \
-    --username "orgbook-publisher" \
+    --username "untp-publisher" \
     --password "${OLD_PASSWORD}" \
-    --authenticationDatabase "orgbook-publisher" \
-    --db "orgbook-publisher" \
+    --authenticationDatabase "untp-publisher" \
+    --db "untp-publisher" \
     --out /tmp/backup
 ```
 
@@ -74,7 +74,7 @@ kubectl cp "${NAMESPACE}/${RELEASE}-mongodb-0:/tmp/backup" ./mongodb-backup
 Verify the dump is non-empty before proceeding:
 
 ```bash
-ls -lh ./mongodb-backup/orgbook-publisher/
+ls -lh ./mongodb-backup/untp-publisher/
 ```
 
 ---
@@ -133,9 +133,9 @@ NEW_PASSWORD=$(kubectl get secret "${RELEASE}-mongodb-custom-user-secret" \
 
 kubectl exec -it "${RELEASE}-mongodb-0" -n "${NAMESPACE}" -- \
   mongosh \
-    --username "orgbook-publisher" \
+    --username "untp-publisher" \
     --password "${NEW_PASSWORD}" \
-    --authenticationDatabase "orgbook-publisher" \
+    --authenticationDatabase "untp-publisher" \
     --eval "db.runCommand({ connectionStatus: 1 })"
 ```
 
@@ -154,12 +154,12 @@ kubectl cp ./mongodb-backup "${NAMESPACE}/${RELEASE}-mongodb-0:/tmp/backup"
 kubectl exec -it "${RELEASE}-mongodb-0" -n "${NAMESPACE}" -- \
   mongorestore \
     --host "localhost:27017" \
-    --username "orgbook-publisher" \
+    --username "untp-publisher" \
     --password "${NEW_PASSWORD}" \
-    --authenticationDatabase "orgbook-publisher" \
-    --db "orgbook-publisher" \
+    --authenticationDatabase "untp-publisher" \
+    --db "untp-publisher" \
     --drop \
-    /tmp/backup/orgbook-publisher
+    /tmp/backup/untp-publisher
 ```
 
 The `--drop` flag drops and recreates each collection before restoring, which
@@ -232,9 +232,9 @@ auto-generated one, create a secret with the following keys before upgrading:
 ```bash
 kubectl create secret generic my-mongodb-secret \
   -n "${NAMESPACE}" \
-  --from-literal=CUSTOM_USER=orgbook-publisher \
+  --from-literal=CUSTOM_USER=untp-publisher \
   --from-literal=CUSTOM_PASSWORD=<your-password> \
-  --from-literal=CUSTOM_DB=orgbook-publisher
+  --from-literal=CUSTOM_DB=untp-publisher
 ```
 
 Then set in your values:
@@ -245,5 +245,5 @@ mongodb:
     existingSecret: "my-mongodb-secret"
 ```
 
-The `orgbook-publisher` user password used in Step 1 can then be used directly
+The `untp-publisher` user password used in Step 1 can then be used directly
 as `CUSTOM_PASSWORD` so there is no need to change the application password.

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: orgbook-publisher
-description: An api server to register and manage credentials.
+name: untp-publisher
+description: UNTP Publisher — register credential types and publish credentials.
 type: application
 version: 0.0.4
 appVersion: "0.0.5"

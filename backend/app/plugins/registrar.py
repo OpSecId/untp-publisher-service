@@ -4,7 +4,7 @@ import requests
 from app.models.did_document import DidDocument, VerificationMethod, Service
 from app.models.credential import Credential
 from app.plugins import MongoClient, TractionController
-from app.plugins.orgbook import OrgbookClient
+from app.plugins.entity_registry import EntityRegistryClient
 from app.plugins.untp import DigitalConformityCredential
 from app.utils import multikey_to_jwk
 from base58 import b58encode
@@ -87,9 +87,9 @@ class PublisherRegistrar:
             ],
             service=[
                 Service(
-                    id=f"{did}#orgbook",
+                    id=f"{did}#entity-registry",
                     type="LinkedDomains",
-                    serviceEndpoint=settings.ORGBOOK_URL,
+                    serviceEndpoint=settings.REGISTRY_URL,
                 )
             ],
         )
@@ -250,8 +250,8 @@ class PublisherRegistrar:
                 credential_registration.get("additional_type")
                 == "DigitalConformityCredential"
             ):
-                # Add issuedToParty information based on Orgbook entity data
-                entity = OrgbookClient().fetch_buisness_info(entity_id)
+                # Add issuedToParty information from entity registry lookup
+                entity = EntityRegistryClient().fetch_buisness_info(entity_id)
                 credential["credentialSubject"]["issuedToParty"] |= {
                     "id": entity["id"],
                     "name": entity["name"],

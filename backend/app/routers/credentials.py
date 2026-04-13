@@ -8,7 +8,7 @@ from app.models.mongodb import CredentialRecord
 from app.plugins.mongodb import MongoClient
 from config import settings
 from app.utils import timestamp
-from app.plugins.orgbook import OrgbookClient
+from app.plugins.entity_registry import EntityRegistryClient
 from app.plugins import (
     TractionController,
     PublisherRegistrar,
@@ -47,14 +47,14 @@ async def publish_credential(request_body: Publication):
             detail="Unregistered credential type",
         )
     
-    # Check if entity id provided exists in orgbook
+    # Check if entity id exists in configured registry
     entity_id = options.get("entityId")
     try:
-        OrgbookClient().fetch_buisness_info(entity_id)
-    except:
+        EntityRegistryClient().fetch_buisness_info(entity_id)
+    except Exception:
         raise HTTPException(
             status_code=404,
-            detail=f"No orgbook registration found for {entity_id}",
+            detail=f"No registry registration found for {entity_id}",
         )
         
     # Check cardinality, returns hash if new issuance is required

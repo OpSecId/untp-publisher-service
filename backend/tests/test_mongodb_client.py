@@ -11,6 +11,7 @@ from app.plugins.mongodb import MongoClient
 def discrete_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     s = MagicMock()
     s.MONGO_URL = None
+    s.MONGO_APP_DATABASE = "untp-publisher"
     s.MONGO_HOST = "mongo.internal"
     s.MONGO_PORT = "27017"
     s.MONGO_USER = "app"
@@ -23,6 +24,7 @@ def discrete_settings(monkeypatch: pytest.MonkeyPatch) -> None:
 def uri_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     s = MagicMock()
     s.MONGO_URL = "mongodb://u:p@railway.internal:27017/?authSource=admin"
+    s.MONGO_APP_DATABASE = "untp-publisher"
     s.MONGO_HOST = "ignored"
     s.MONGO_PORT = "9999"
     s.MONGO_USER = "ignored"
@@ -53,6 +55,7 @@ def test_mongo_client_prefers_mongo_url(uri_settings: None) -> None:
 def test_mongo_client_strips_whitespace_url(monkeypatch: pytest.MonkeyPatch) -> None:
     s = MagicMock()
     s.MONGO_URL = "  mongodb://localhost/  "
+    s.MONGO_APP_DATABASE = "untp-publisher"
     s.MONGO_HOST = "h"
     s.MONGO_PORT = "1"
     s.MONGO_USER = "u"

@@ -30,7 +30,7 @@ async def publisher_session(token: str = Depends(JWTBearer())):
                 "domain": settings.DOMAIN,
                 "traction_tenant_id": settings.TRACTION_TENANT_ID,
                 "traction_api_url": settings.TRACTION_API_URL,
-                "orgbook_url": settings.ORGBOOK_URL,
+                "registry_url": settings.REGISTRY_URL,
                 "did_web_server_url": settings.DID_WEB_SERVER_URL,
                 "issuer_registry_url": settings.ISSUER_REGISTRY_URL,
             },

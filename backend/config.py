@@ -4,7 +4,7 @@ import logging
 import os
 from logging import Logger
 
-from pydantic import Field, computed_field, model_validator
+from pydantic import AliasChoices, Field, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         arbitrary_types_allowed=True,
     )
 
-    PROJECT_TITLE: str = "Orgbook Publisher"
+    PROJECT_TITLE: str = "UNTP Publisher"
     PROJECT_VERSION: str = "v0"
 
     #: When ``True``, the app exposes only ``/server/status`` and ``/test-suite/*`` (no auth,
@@ -43,8 +43,14 @@ class Settings(BaseSettings):
     TRACTION_API_KEY: str = Field(default="dev-local")
     TRACTION_TENANT_ID: str = Field(default="dev-local")
 
-    ORGBOOK_URL: str = Field(default="http://localhost")
-    ORGBOOK_SYNC: bool = Field(default=True)
+    REGISTRY_URL: str = Field(
+        default="http://localhost",
+        validation_alias=AliasChoices("REGISTRY_URL", "ORGBOOK_URL"),
+    )
+    REGISTRY_SYNC: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("REGISTRY_SYNC", "ORGBOOK_SYNC"),
+    )
 
     DID_WEB_SERVER_URL: str = Field(default="http://localhost")
     PUBLISHER_MULTIKEY: str = Field(default="dev-local")
@@ -56,8 +62,7 @@ class Settings(BaseSettings):
 
     #: Full MongoDB connection URI (e.g. Railway ``MONGO_URL``). When non-empty, this is used
     #: exclusively and ``MONGO_HOST`` / ``MONGO_PORT`` / ``MONGO_USER`` / ``MONGO_PASSWORD`` /
-    #: ``MONGO_DB`` are ignored for the client handshake. Application data still uses the
-    #: ``orgbook-publisher`` database name in code.
+    #: ``MONGO_DB`` are ignored for the client handshake.
     MONGO_URL: str | None = Field(default=None)
 
     MONGO_HOST: str = Field(default="localhost")
@@ -66,15 +71,18 @@ class Settings(BaseSettings):
     MONGO_PASSWORD: str = Field(default="dev")
     MONGO_DB: str = Field(default="dev")
 
-    @computed_field
-    @property
-    def ORGBOOK_API_URL(self) -> str:
-        return f"{self.ORGBOOK_URL}/api/v4"
+    #: MongoDB database name for application collections (``IssuerRecord``, etc.).
+    MONGO_APP_DATABASE: str = Field(default="untp-publisher")
 
     @computed_field
     @property
-    def ORGBOOK_VC_SERVICE(self) -> str:
-        return f"{self.ORGBOOK_URL}/api/vc"
+    def registry_api_url(self) -> str:
+        return f"{self.REGISTRY_URL}/api/v4"
+
+    @computed_field
+    @property
+    def registry_vc_service(self) -> str:
+        return f"{self.REGISTRY_URL}/api/vc"
 
     @model_validator(mode="after")
     def _configure_logging(self) -> Settings:
