@@ -18,6 +18,7 @@ import { useState } from 'react'
 import { apiJson } from '../api/client'
 import { usePublisherSession } from '../hooks/usePublisherSession'
 import { apiBaseUrl } from '../api/baseUrl'
+import type { PublisherSession } from '../api/types'
 
 export function SettingsPage() {
   const { session, loading, error } = usePublisherSession()
@@ -82,6 +83,7 @@ export function SettingsPage() {
   }
 
   const env = session?.environment
+  const placeholderBackendVars = collectPlaceholderBackendUrls(env)
 
   return (
     <Box maxW="3xl">
@@ -114,6 +116,20 @@ export function SettingsPage() {
         <Heading size="sm" mb={4}>
           Server environment
         </Heading>
+        {placeholderBackendVars.length > 0 ? (
+          <Alert status="warning" variant="left-accent" borderRadius="md" mb={4}>
+            <AlertIcon />
+            <Box>
+              <Text fontWeight="medium">Registry / DID web URLs look like dev defaults</Text>
+              <Text fontSize="sm" mt={1}>
+                These rows use <code>localhost</code>, <code>127.0.0.1</code>, or are empty:{' '}
+                {placeholderBackendVars.map((v) => v.rowLabel).join(', ')}. On the API host (e.g. Railway), set{' '}
+                <code>{placeholderBackendVars.map((v) => v.envVar).join(', ')}</code> to URLs the backend can
+                reach (not only the browser / SPA host).
+              </Text>
+            </Box>
+          </Alert>
+        ) : null}
         <Stack spacing={3} fontSize="sm">
           <Row label="Traction API URL" value={env?.traction_api_url} />
           <Row label="Traction tenant ID" value={env?.traction_tenant_id} />
@@ -171,6 +187,30 @@ export function SettingsPage() {
       </Box>
     </Box>
   )
+}
+
+function isDevPlaceholderUrl(url: string | undefined): boolean {
+  if (url == null || !url.trim()) {
+    return true
+  }
+  const u = url.trim().toLowerCase()
+  return u.includes('localhost') || u.includes('127.0.0.1') || u.startsWith('http://0.0.0.0')
+}
+
+function collectPlaceholderBackendUrls(
+  env: PublisherSession['environment'] | undefined,
+): { rowLabel: string; envVar: string }[] {
+  if (!env) {
+    return []
+  }
+  const out: { rowLabel: string; envVar: string }[] = []
+  if (isDevPlaceholderUrl(env.registry_url)) {
+    out.push({ rowLabel: 'Registry URL', envVar: 'REGISTRY_URL' })
+  }
+  if (isDevPlaceholderUrl(env.did_web_server_url)) {
+    out.push({ rowLabel: 'DID web(vh) server', envVar: 'DID_WEB_SERVER_URL' })
+  }
+  return out
 }
 
 function Row({ label, value }: { label: string; value: string | undefined }) {
