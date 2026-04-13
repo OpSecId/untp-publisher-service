@@ -41,7 +41,7 @@ def decodeJWT(token: str) -> dict | None:
 # BC Traction tenant proxy: several /tenant* paths accept the wallet Bearer; /status is often nginx 403.
 # Lighter probes first; /tenant/server/status/config can return a large JSON body.
 # ACA-Py-only stacks may answer on /status last.
-_TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = (
+TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = (
     "/tenant",
     "/tenant/config",
     "/tenant/wallet",
@@ -57,7 +57,7 @@ def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
         return None
     headers = {"Authorization": f"Bearer {token}"}
     ok = False
-    for path in _TRACTION_WALLET_INTROSPECTION_PATHS:
+    for path in TRACTION_WALLET_INTROSPECTION_PATHS:
         try:
             r = httpx.get(f"{base}{path}", headers=headers, timeout=15.0)
         except httpx.RequestError as e:

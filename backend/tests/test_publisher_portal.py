@@ -53,6 +53,13 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
     assert data["claims"]["client_id"] == "did:web:issuer"
     assert data["environment"]["project_title"] == "Test Publisher"
     assert data["environment"]["traction_tenant_id"] == "tenant-1"
+    assert data["environment"]["traction_wallet_introspection_paths"] == [
+        "/tenant",
+        "/tenant/config",
+        "/tenant/wallet",
+        "/tenant/server/status/config",
+        "/status",
+    ]
     assert data["environment"]["registry_url"] == "https://registry.example"
 
 
