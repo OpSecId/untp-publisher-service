@@ -40,6 +40,23 @@ export type PublisherIssuersResponse = {
   issuers: PublisherIssuerRow[]
 }
 
+/** GET /publisher/credential-types */
+export type PublisherCredentialTypeSummary = {
+  type: string
+  version: string
+  issuer: string
+  subject_type: string
+  additional_type: string
+  core_paths: Record<string, string>
+  subject_paths: Record<string, string>
+  additional_paths: Record<string, string> | null
+  status_lists: unknown[]
+}
+
+export type PublisherCredentialTypesResponse = {
+  credential_types: PublisherCredentialTypeSummary[]
+}
+
 /** POST /test-suite/validate */
 export type TestSuiteValidateResponse = {
   success: boolean

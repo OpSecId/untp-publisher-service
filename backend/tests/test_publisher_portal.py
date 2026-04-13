@@ -1,3 +1,4 @@
+import json
 import time
 from typing import Any
 
@@ -310,4 +311,79 @@ def test_publisher_issuers_503_on_mongo_error(portal_client: TestClient, monkeyp
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/issuers", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 503
+
+
+def test_publisher_credential_types_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.get("/publisher/credential-types")
+    assert r.status_code == 403
+
+
+def test_publisher_credential_types_returns_summaries(
+    portal_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fat_doc: dict[str, Any] = {
+        "type": "MyCred",
+        "version": "1.0",
+        "issuer": "did:web:x.example",
+        "subject_type": "SubT",
+        "additional_type": "DigitalConformityCredential",
+        "core_paths": {"entityId": "$.a"},
+        "subject_paths": {"x": "$.b"},
+        "additional_paths": {"y": "$.c"},
+        "status_lists": ["uuid-1"],
+        "template": {"huge": True},
+        "context": {"x": 1},
+        "oca_bundle": {"big": "data"},
+        "json_schema": {},
+    }
+
+    class FakeMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            if collection == "CredentialTypeRecord":
+                return iter([fat_doc])
+            return iter([])
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["credential_types"]) == 1
+    row = data["credential_types"][0]
+    assert row["type"] == "MyCred"
+    assert row["version"] == "1.0"
+    assert row["issuer"] == "did:web:x.example"
+    assert row["subject_type"] == "SubT"
+    assert row["additional_type"] == "DigitalConformityCredential"
+    assert row["core_paths"] == {"entityId": "$.a"}
+    assert row["subject_paths"] == {"x": "$.b"}
+    assert row["additional_paths"] == {"y": "$.c"}
+    assert row["status_lists"] == ["uuid-1"]
+    raw = json.dumps(data)
+    assert "template" not in raw
+    assert "oca_bundle" not in raw
+    assert "context" not in raw
+
+
+def test_publisher_credential_types_503_on_mongo_error(
+    portal_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class BoomMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            raise PyMongoError("unavailable")
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", BoomMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 503

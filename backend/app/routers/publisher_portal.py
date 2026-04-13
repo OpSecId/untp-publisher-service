@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -51,6 +52,47 @@ async def publisher_list_issuers(_token: str = Depends(verify_portal_jwt_token))
         raise HTTPException(status_code=503, detail="Issuer store is temporarily unavailable.") from e
 
     return JSONResponse(status_code=200, content={"issuers": out})
+
+
+def _credential_type_portal_summary(doc: dict[str, Any]) -> dict[str, Any]:
+    """Strip large blobs (context, template, OCA, json_schema) for portal listing."""
+    sl = doc.get("status_lists")
+    status_lists: list[Any] = list(sl) if isinstance(sl, list) else []
+
+    def _paths(key: str) -> dict[str, Any] | None:
+        v = doc.get(key)
+        return dict(v) if isinstance(v, dict) else None
+
+    return {
+        "type": str(doc.get("type") or ""),
+        "version": str(doc.get("version") or ""),
+        "issuer": str(doc.get("issuer") or ""),
+        "subject_type": str(doc["subject_type"]) if doc.get("subject_type") is not None else "",
+        "additional_type": str(doc["additional_type"]) if doc.get("additional_type") is not None else "",
+        "core_paths": _paths("core_paths") or {},
+        "subject_paths": _paths("subject_paths") or {},
+        "additional_paths": _paths("additional_paths"),
+        "status_lists": status_lists,
+    }
+
+
+@router.get("/credential-types", tags=["Client"])
+async def publisher_list_credential_types(_token: str = Depends(verify_portal_jwt_token)):
+    """List registered credential types (summary only; no full template/context/OCA/schema)."""
+    try:
+        mongo = MongoClient()
+        out: list[dict[str, Any]] = []
+        for doc in mongo.find("CredentialTypeRecord", {}):
+            if not isinstance(doc, dict):
+                continue
+            out.append(_credential_type_portal_summary(doc))
+    except PyMongoError as e:
+        logger.warning("publisher_list_credential_types: MongoDB error: %s", e)
+        raise HTTPException(
+            status_code=503, detail="Credential type store is temporarily unavailable."
+        ) from e
+
+    return JSONResponse(status_code=200, content={"credential_types": out})
 
 
 @router.get("/session", tags=["Client"])
