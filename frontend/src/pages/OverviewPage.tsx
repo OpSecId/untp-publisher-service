@@ -14,7 +14,9 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ApiError, apiFetch, apiJson } from '../api/client'
+import { setAccessToken } from '../auth/storage'
 import type { PublisherSession } from '../api/types'
 
 function formatExpiry(epoch: number): string {
@@ -26,6 +28,7 @@ function formatExpiry(epoch: number): string {
 }
 
 export function OverviewPage() {
+  const navigate = useNavigate()
   const [session, setSession] = useState<PublisherSession | null>(null)
   const [serverOk, setServerOk] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
@@ -52,10 +55,11 @@ export function OverviewPage() {
       } catch (e) {
         if (!cancelled) {
           if (e instanceof ApiError && e.status === 403) {
-            setError('Session expired or invalid. Sign in again.')
-          } else {
-            setError(e instanceof Error ? e.message : 'Failed to load session')
+            setAccessToken(null)
+            navigate('/login', { replace: true })
+            return
           }
+          setError(e instanceof Error ? e.message : 'Failed to load session')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -64,7 +68,7 @@ export function OverviewPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [navigate])
 
   if (loading) {
     return (

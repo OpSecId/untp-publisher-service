@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ApiError, apiJson } from '../api/client'
+import { setAccessToken } from '../auth/storage'
 import type { PublisherSession } from '../api/types'
 
 export function usePublisherSession() {
+  const navigate = useNavigate()
   const [session, setSession] = useState<PublisherSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -14,16 +17,17 @@ export function usePublisherSession() {
       const s = await apiJson<PublisherSession>('/publisher/session')
       setSession(s)
     } catch (e) {
-      if (e instanceof ApiError && e.status === 403) {
-        setError(e.message || 'Session expired or invalid. Sign in again.')
-      } else {
-        setError(e instanceof Error ? e.message : 'Failed to load session')
-      }
       setSession(null)
+      if (e instanceof ApiError && e.status === 403) {
+        setAccessToken(null)
+        navigate('/login', { replace: true })
+        return
+      }
+      setError(e instanceof Error ? e.message : 'Failed to load session')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     void reload()
