@@ -52,7 +52,10 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("REGISTRY_SYNC", "ORGBOOK_SYNC"),
     )
 
-    DID_WEB_SERVER_URL: str = Field(default="http://localhost")
+    DID_WEB_SERVER_URL: str = Field(
+        default="http://localhost",
+        validation_alias=AliasChoices("DID_WEB_SERVER_URL", "WEBH_SERVER_URL"),
+    )
     PUBLISHER_MULTIKEY: str = Field(default="dev-local")
     ISSUER_REGISTRY_URL: str = Field(default="http://localhost")
 

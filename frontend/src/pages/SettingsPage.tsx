@@ -210,7 +210,10 @@ function collectPlaceholderBackendUrls(
     out.push({ rowLabel: 'Registry URL', envVar: 'REGISTRY_URL' })
   }
   if (isDevPlaceholderUrl(env.did_web_server_url)) {
-    out.push({ rowLabel: 'DID web(vh) server', envVar: 'DID_WEB_SERVER_URL' })
+    out.push({
+      rowLabel: 'DID web(vh) server',
+      envVar: 'DID_WEB_SERVER_URL (or WEBH_SERVER_URL)',
+    })
   }
   return out
 }
