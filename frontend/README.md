@@ -1,6 +1,6 @@
 # Orgbook Publisher (SPA)
 
-Vite + React + TypeScript + Chakra UI. Authenticates against the FastAPI publisher (`/auth/token` or paste JWT), then loads **Overview** and **Settings** via `GET /publisher/session`.
+Vite + React + TypeScript + Chakra UI. Sign-in uses a pasted JWT validated with **`GET /publisher/session`** before it is stored; then **Overview** and **Settings** load the same session.
 
 ## Development
 
