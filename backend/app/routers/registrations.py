@@ -38,6 +38,14 @@ async def register_credential_type_core(credential_registration: dict[str, Any])
     ``credential_registration`` must be a ``CredentialRegistration.model_dump()``-style dict
     (camelCase keys, nested ``relatedResources``, ``corePaths``, etc.).
     """
+    dn = credential_registration.get("description")
+    if isinstance(dn, str):
+        s = dn.strip()
+        if not s:
+            credential_registration.pop("description", None)
+        else:
+            credential_registration["description"] = s
+
     credential_type = credential_registration.get("type")
     credential_version = credential_registration.get("version")
 

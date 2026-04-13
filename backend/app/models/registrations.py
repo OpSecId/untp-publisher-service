@@ -70,6 +70,11 @@ class CorePaths(BaseModel):
 class CredentialRegistration(BaseModel):
     type: str = Field("BCPetroleumAndNaturalGasTitleCredential")
     version: str = Field(example="1.0")
+    description: Optional[str] = Field(
+        default=None,
+        example="BC petroleum and natural gas title credential issued by the regulator.",
+        description="Human-readable summary; used as the VC template name when set.",
+    )
     issuer: str = Field(example="did:web:")
     corePaths: CorePaths = Field()
     subjectType: str = Field(None, example="PetroleumAndNaturalGasTitle")

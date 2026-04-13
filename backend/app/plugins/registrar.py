@@ -193,14 +193,20 @@ class PublisherRegistrar:
         credential_type = credential_registration["type"]
         credential_version = credential_registration["version"]
 
+        desc = (credential_registration.get("description") or "").strip()
+        if desc:
+            template_name = desc
+        else:
+            st = credential_registration.get("subjectType") or ""
+            template_name = (
+                " ".join(re.findall("[A-Z][^A-Z]*", st)).strip() or str(st).strip() or credential_type
+            )
+
         # Create base credential template
         credential_template = {
             "@context": ["https://www.w3.org/ns/credentials/v2"],
             "type": ["VerifiableCredential"],
-            "name": " ".join(
-                re.findall("[A-Z][^A-Z]*", credential_registration["subjectType"])
-            )
-            .strip(),
+            "name": template_name,
             "issuer": {"id": issuer["id"], "name": issuer["name"]},
             "credentialSubject": {"type": []},
         }
