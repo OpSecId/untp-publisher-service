@@ -97,11 +97,13 @@ def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch
 def test_publisher_session_accepts_traction_wallet_when_tenant_fails_but_tenant_wallet_ok(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Fallback: /tenant non-200, then /tenant/wallet with same Bearer returns 200."""
+    """Fallback: /tenant and /tenant/config non-200, then /tenant/wallet returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
         if url == "https://traction.example/tenant":
+            return type("R", (), {"status_code": 404})()
+        if url == "https://traction.example/tenant/config":
             return type("R", (), {"status_code": 404})()
         if url == "https://traction.example/tenant/wallet":
             return type("R", (), {"status_code": 200})()
@@ -138,12 +140,13 @@ def test_publisher_session_accepts_traction_wallet_when_tenant_fails_but_tenant_
 def test_publisher_session_accepts_traction_wallet_when_tenant_paths_fail_but_status_ok(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Fallback: /tenant and /tenant/wallet non-200, then /status returns 200."""
+    """Fallback: /tenant, /tenant/config, /tenant/wallet non-200, then /status returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
         if url in (
             "https://traction.example/tenant",
+            "https://traction.example/tenant/config",
             "https://traction.example/tenant/wallet",
         ):
             return type("R", (), {"status_code": 404})()
