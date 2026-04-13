@@ -75,9 +75,8 @@ def portal_token_rejected_http_detail() -> str:
     base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
     status_target = f"{base}/status" if base else "(TRACTION_API_URL not set)/status"
     return (
-        "Invalid or expired token. A publisher JWT from POST /auth/token must be signed with "
-        "this deployment's JWT_SECRET. A Traction wallet JWT is accepted only after this backend "
-        f"receives HTTP 200 from GET {status_target} with the same Authorization Bearer."
+        "Token not accepted. Publisher: use POST /auth/token from this deployment (JWT_SECRET must match). "
+        f"Wallet: this backend must receive HTTP 200 from GET {status_target} with the same Bearer."
     )
 
 

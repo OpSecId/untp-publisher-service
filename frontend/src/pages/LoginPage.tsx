@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Code,
   Container,
   Flex,
   Heading,
@@ -186,22 +185,18 @@ export function LoginPage() {
                 </>
               )}
               {signInFailure?.reason === 'rejected' && (
-                <>
-                  <Text lineHeight="tall">
-                    The API responded with HTTP <strong>{signInFailure.status}</strong>
-                    {signInFailure.detail ? (
-                      <>
-                        : {signInFailure.detail}
-                      </>
-                    ) : (
-                      <>.</>
-                    )}{' '}
-                    For a publisher <Code fontSize="sm">POST /auth/token</Code> JWT, the secret must match this
-                    deployment. For a Traction wallet JWT, the backend must reach{' '}
-                    <Code fontSize="sm">TRACTION_API_URL</Code> and Traction must accept the same token on{' '}
-                    <Code fontSize="sm">GET /status</Code>.
-                  </Text>
-                </>
+                <Text lineHeight="tall">
+                  <strong>HTTP {signInFailure.status}</strong>
+                  {signInFailure.detail ? (
+                    <>
+                      {' — '}
+                      {signInFailure.detail}
+                    </>
+                  ) : (
+                    <> — The session endpoint did not accept this token. Try a publisher token from this API&apos;s
+                    POST /auth/token, or a wallet JWT that Traction still accepts on GET /status.</>
+                  )}
+                </Text>
               )}
               {!signInFailure && (
                 <Text lineHeight="tall" textAlign="center">
