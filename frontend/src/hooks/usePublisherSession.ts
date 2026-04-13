@@ -15,7 +15,7 @@ export function usePublisherSession() {
       setSession(s)
     } catch (e) {
       if (e instanceof ApiError && e.status === 403) {
-        setError('Session expired or invalid. Sign in again.')
+        setError(e.message || 'Session expired or invalid. Sign in again.')
       } else {
         setError(e instanceof Error ? e.message : 'Failed to load session')
       }

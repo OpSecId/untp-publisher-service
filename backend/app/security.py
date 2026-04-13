@@ -53,6 +53,7 @@ def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
         logger.debug("Traction introspection request failed: %s", e)
         return None
     if r.status_code != 200:
+        logger.debug("Traction introspection GET /status returned %s", r.status_code)
         return None
     try:
         payload = jwt.decode(token, options={"verify_signature": False})
@@ -68,6 +69,16 @@ def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
         "client_id": str(wallet_id),
         "expires": int(exp) if exp is not None else int(time.time()) + 3600,
     }
+
+
+def portal_token_rejected_http_detail() -> str:
+    base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
+    status_target = f"{base}/status" if base else "(TRACTION_API_URL not set)/status"
+    return (
+        "Invalid or expired token. A publisher JWT from POST /auth/token must be signed with "
+        "this deployment's JWT_SECRET. A Traction wallet JWT is accepted only after this backend "
+        f"receives HTTP 200 from GET {status_target} with the same Authorization Bearer."
+    )
 
 
 def decode_portal_token(token: str) -> dict | None:
@@ -90,8 +101,8 @@ async def verify_portal_jwt_token(
 ) -> str:
     """Bearer JWT: publisher ``/auth/token`` or Traction wallet token (see ``decode_portal_token``)."""
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise HTTPException(status_code=403, detail="Invalid or expired token")
+        raise HTTPException(status_code=403, detail="Missing or non-Bearer Authorization header.")
     raw = credentials.credentials
     if decode_portal_token(raw) is None:
-        raise HTTPException(status_code=403, detail="Invalid or expired token")
+        raise HTTPException(status_code=403, detail=portal_token_rejected_http_detail())
     return raw

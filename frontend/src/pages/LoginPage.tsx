@@ -22,6 +22,7 @@ import {
   MdOutlineVisibility,
 } from 'react-icons/md'
 import { apiBaseUrl } from '../api/baseUrl'
+import { normalizePortalAccessToken } from '../auth/normalizeToken'
 import { getAccessToken, setAccessToken } from '../auth/storage'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
 import { PoweredByTraction } from '../components/PoweredByTraction'
@@ -42,7 +43,7 @@ async function checkPublisherSession(token: string): Promise<SessionCheckResult>
   const url = publisherSessionUrl()
   try {
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token.trim()}` },
+      headers: { Authorization: `Bearer ${normalizePortalAccessToken(token)}` },
     })
     if (res.ok) return { ok: true }
     let detail: string | undefined
@@ -161,7 +162,7 @@ export function LoginPage() {
   }, [navigate])
 
   const signInWithToken = async (raw: string) => {
-    const token = raw.trim()
+    const token = normalizePortalAccessToken(raw)
     if (!token) {
       setSignInFailure({ reason: 'empty' })
       setPhase('error')

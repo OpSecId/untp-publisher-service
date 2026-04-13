@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from app.security import decode_portal_token, verify_portal_jwt_token
+from app.security import decode_portal_token, portal_token_rejected_http_detail, verify_portal_jwt_token
 from config import settings
 
 router = APIRouter(prefix="/publisher")
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/publisher")
 async def publisher_session(token: str = Depends(verify_portal_jwt_token)):
     payload = decode_portal_token(token)
     if not payload or not payload.get("client_id"):
-        raise HTTPException(status_code=403, detail="Invalid or expired token")
+        raise HTTPException(status_code=403, detail=portal_token_rejected_http_detail())
 
     return JSONResponse(
         status_code=200,
