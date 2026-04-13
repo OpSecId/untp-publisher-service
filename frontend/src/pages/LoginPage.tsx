@@ -61,7 +61,7 @@ const features = [
   {
     icon: MdOutlineVisibility,
     title: 'Transparency by design',
-    body: 'Session and environment disclosure (registry, traction, DID web) so operators and auditors can trace which endpoints and identities back a published credential.',
+    body: 'Session and environment disclosure (registry, traction, DID web(vh)) so operators and auditors can trace which endpoints and identities back a published credential.',
   },
 ] as const
 
@@ -422,7 +422,7 @@ export function LoginPage() {
               >
                 Operate the publisher as a <Text as="span" fontWeight="700" color={heroEmphasis}>compliance
                 control plane</Text> for UNTP credentials: register schemas and overlays, bind issuers
-                to Traction and DID web, and issue conformity attestations your supply-chain partners
+                to Traction and DID web(vh), and issue conformity attestations your supply-chain partners
                 can verify—without losing transparency into which registries and endpoints back each
                 assertion.
               </Text>
@@ -514,7 +514,7 @@ export function LoginPage() {
                     },
                     {
                       label: 'Policy bindings',
-                      sub: 'Registry and DID-web endpoints surfaced for governance reviews and cross-system alignment.',
+                      sub: 'Registry and DID web(vh) endpoints surfaced for governance reviews and cross-system alignment.',
                     },
                     {
                       label: 'Non-repudiation entry',

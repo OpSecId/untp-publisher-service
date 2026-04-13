@@ -118,7 +118,7 @@ export function SettingsPage() {
           <Row label="Traction API URL" value={env?.traction_api_url} />
           <Row label="Traction tenant ID" value={env?.traction_tenant_id} />
           <Row label="Registry URL" value={env?.registry_url} />
-          <Row label="DID web server" value={env?.did_web_server_url} />
+          <Row label="DID web(vh) server" value={env?.did_web_server_url} />
           <Row label="Issuer registry" value={env?.issuer_registry_url} />
         </Stack>
       </Box>
