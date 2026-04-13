@@ -387,6 +387,70 @@ def test_publisher_credential_types_503_on_mongo_error(
     assert r.status_code == 503
 
 
+def test_publisher_credentials_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.get("/publisher/credentials")
+    assert r.status_code == 403
+
+
+def test_publisher_credentials_returns_summaries(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    cred_doc: dict[str, Any] = {
+        "id": "cred-uuid-1",
+        "type": "MyCredType",
+        "entity_id": "ent-1",
+        "cardinality_id": "card-1",
+        "cardinality_hash": "h",
+        "refresh": False,
+        "revocation": True,
+        "suspension": False,
+        "vc": {"large": True},
+        "vc_jwt": "ey...",
+    }
+
+    class FakeMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            if collection == "CredentialRecord":
+                return iter([cred_doc])
+            return iter([])
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/credentials", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["credentials"]) == 1
+    row = data["credentials"][0]
+    assert row["id"] == "cred-uuid-1"
+    assert row["type"] == "MyCredType"
+    assert row["entity_id"] == "ent-1"
+    assert row["cardinality_id"] == "card-1"
+    assert row["revocation"] is True
+    assert row["refresh"] is False
+    raw = json.dumps(data)
+    assert "vc_jwt" not in raw
+    assert "vc" not in raw
+
+
+def test_publisher_credentials_503_on_mongo_error(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class BoomMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            raise PyMongoError("unavailable")
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", BoomMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/credentials", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 503
+
+
 def test_publisher_register_credential_type_requires_auth(portal_client: TestClient) -> None:
     r = portal_client.post(
         "/publisher/credential-types",

@@ -69,6 +69,21 @@ export type PublisherRegisterCredentialTypeResponse = {
   issuer: string
 }
 
+/** GET /publisher/credentials */
+export type PublisherCredentialRow = {
+  id: string
+  type: string
+  entity_id: string
+  cardinality_id: string
+  refresh: boolean
+  revocation: boolean
+  suspension: boolean
+}
+
+export type PublisherCredentialsResponse = {
+  credentials: PublisherCredentialRow[]
+}
+
 /** POST /test-suite/validate */
 export type TestSuiteValidateResponse = {
   success: boolean

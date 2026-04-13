@@ -140,6 +140,38 @@ async def publisher_list_credential_types(_token: str = Depends(verify_portal_jw
     return JSONResponse(status_code=200, content={"credential_types": out})
 
 
+def _credential_record_portal_summary(doc: dict[str, Any]) -> dict[str, Any]:
+    """Strip ``vc`` / ``vc_jwt`` for portal listing."""
+    return {
+        "id": str(doc.get("id") or ""),
+        "type": str(doc.get("type") or ""),
+        "entity_id": str(doc.get("entity_id") or ""),
+        "cardinality_id": str(doc.get("cardinality_id") or ""),
+        "refresh": bool(doc.get("refresh")),
+        "revocation": bool(doc.get("revocation")),
+        "suspension": bool(doc.get("suspension")),
+    }
+
+
+@router.get("/credentials", tags=["Client"])
+async def publisher_list_credentials(_token: str = Depends(verify_portal_jwt_token)):
+    """List published credentials (summary only; no VC JSON or JWT)."""
+    try:
+        mongo = MongoClient()
+        out: list[dict[str, Any]] = []
+        for doc in mongo.find("CredentialRecord", {}):
+            if not isinstance(doc, dict):
+                continue
+            out.append(_credential_record_portal_summary(doc))
+    except PyMongoError as e:
+        logger.warning("publisher_list_credentials: MongoDB error: %s", e)
+        raise HTTPException(
+            status_code=503, detail="Credential store is temporarily unavailable."
+        ) from e
+
+    return JSONResponse(status_code=200, content={"credentials": out})
+
+
 @router.post("/credential-types", tags=["Client"])
 async def publisher_register_credential_type(
     body: CredentialRegistration,

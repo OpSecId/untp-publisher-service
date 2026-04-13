@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './layout/AppShell'
 import { LoginPage } from './pages/LoginPage'
 import { CredentialTemplatesPage } from './pages/CredentialTemplatesPage'
+import { CredentialsPage } from './pages/CredentialsPage'
 import { IssuersPage } from './pages/IssuersPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -22,6 +23,7 @@ export default function App() {
         <Route index element={<OverviewPage />} />
         <Route path="issuers" element={<IssuersPage />} />
         <Route path="credential-templates" element={<CredentialTemplatesPage />} />
+        <Route path="credentials" element={<CredentialsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="test-suite" element={<TestSuitePage />} />
       </Route>
