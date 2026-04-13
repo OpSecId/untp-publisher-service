@@ -32,6 +32,7 @@ export function WizardHeaderChrome({
 
   return (
     <Box
+      flexShrink={0}
       px={{ base: 5, md: 8 }}
       pt={6}
       pb={5}

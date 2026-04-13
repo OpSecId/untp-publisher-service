@@ -179,10 +179,19 @@ export function IssuersPage() {
 
       <Modal isOpen={registerModal.isOpen} onClose={closeRegisterModal} size="lg" motionPreset="slideInBottom">
         <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
-        <ModalContent borderRadius="2xl" overflow="hidden" boxShadow="2xl" mx={3}>
+        <ModalContent
+          borderRadius="2xl"
+          overflow="hidden"
+          boxShadow="2xl"
+          mx={3}
+          display="flex"
+          flexDirection="column"
+          h="560px"
+          maxH="90vh"
+        >
           <ModalCloseButton top={4} right={4} zIndex={2} rounded="full" bg={wizardCloseBg} _hover={{ bg: wizardCloseHoverBg }} />
           <WizardHeaderChrome title="Register issuer" steps={REGISTER_WIZARD_STEPS} activeIndex={registerStep} />
-          <ModalBody px={{ base: 5, md: 8 }} py={6} bg={wizardBodyBg}>
+          <ModalBody flex="1" minH={0} overflowY="auto" px={{ base: 5, md: 8 }} py={6} bg={wizardBodyBg}>
             <WizardAnimatedStep stepKey={registerStep}>
               <>
                 {registerStep === 0 ? (
@@ -267,6 +276,7 @@ export function IssuersPage() {
             </WizardAnimatedStep>
           </ModalBody>
           <ModalFooter
+            flexShrink={0}
             gap={2}
             flexWrap="wrap"
             width="100%"
