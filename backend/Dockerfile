@@ -9,6 +9,8 @@ RUN pip install uv \
     && uv sync --no-install-project --frozen
 
 COPY app ./app
+# Top-level Python package (contexts/schemas); not under app/ — must be on PYTHONPATH.
+COPY untp ./untp
 COPY config.py main.py ./
 
 CMD ["uv", "run", "python", "main.py"]
