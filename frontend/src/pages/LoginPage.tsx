@@ -112,9 +112,6 @@ export function LoginPage() {
   const outlineBtnColor = useColorModeValue('gray.800', 'white')
   const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const outlineBtnHoverBorder = useColorModeValue('gray.400', 'whiteAlpha.600')
-  const authHintMuted = useColorModeValue('gray.500', 'whiteAlpha.500')
-  const authAuthColor = useColorModeValue('brand.600', 'bcGold.300')
-  const authEndpointColor = useColorModeValue('bc.linkBlue', 'whiteAlpha.700')
   const glassBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const glassBg = useColorModeValue('rgba(255,255,255,0.94)', 'rgba(255,255,255,0.80)')
   const glassGlowOpacity = useColorModeValue(0.22, 0.35)
@@ -415,7 +412,7 @@ export function LoginPage() {
                 bgGradient={heroGradient}
                 bgClip="text"
               >
-                Machine-readable claims. Auditable chain of custody.
+                Verifiable credentials for your supply chain.
               </Heading>
               <Text
                 color={heroBodyMuted}
@@ -471,25 +468,6 @@ export function LoginPage() {
                   Capability stack
                 </Button>
               </Stack>
-              <Text
-                as="p"
-                fontSize="sm"
-                color={authHintMuted}
-                maxW="md"
-                mx={{ base: 'auto', lg: 0 }}
-                fontFamily="mono"
-                letterSpacing="-0.01em"
-              >
-                <Text as="span" color={authAuthColor} fontWeight="600">
-                  AUTH
-                </Text>{' '}
-                Place a Bearer JWT in the system clipboard, then invoke Get started — clipboard API
-                requires HTTPS or localhost; token is validated against{' '}
-                <Text as="span" color={authEndpointColor}>
-                  GET /publisher/session
-                </Text>{' '}
-                before session storage.
-              </Text>
             </Stack>
 
             {/* Glass preview card */}
