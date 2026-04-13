@@ -8,7 +8,7 @@ The portal accepts **either**:
 
 1. **Publisher issuer JWT** — `access_token` from this API’s `POST /auth/token` (`client_id` + `client_secret` in Mongo). Payload uses `client_id` and `expires`, signed with `JWT_SECRET`.
 
-2. **Traction / ACA-Py multitenancy wallet JWT** — the token from the tenant agent (`wallet_id`, `iat`, `exp` in the payload). The publisher does **not** store Traction’s jwt-secret; it calls **`GET {TRACTION_API_URL}/status`** with your `Authorization: Bearer` token. If Traction returns **200**, the session uses that token’s `wallet_id` as `claims.client_id`. The backend must be able to reach `TRACTION_API_URL` (same network / public URL as your deployment).
+2. **Traction / ACA-Py multitenancy wallet JWT** — the token from the tenant agent (`wallet_id`, `iat`, `exp` in the payload). The publisher does **not** store Traction’s jwt-secret; it probes **`GET {TRACTION_API_URL}/status`** then **`GET {TRACTION_API_URL}/tenant/wallet`** with the same `Authorization: Bearer` until one returns **200** (BC sandbox often validates on `/tenant/wallet` only). The session then uses `wallet_id` as `claims.client_id`. The backend must be able to reach `TRACTION_API_URL`.
 
 ## Development
 

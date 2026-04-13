@@ -38,22 +38,28 @@ def decodeJWT(token: str) -> dict | None:
         return None
 
 
+# ACA-Py often exposes /status; BC Traction tenant proxy may only validate the wallet JWT on /tenant/wallet.
+_TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = ("/status", "/tenant/wallet")
+
+
 def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
-    """If Traction accepts the Bearer, treat unverified payload wallet_id as the portal identity."""
+    """If Traction accepts the Bearer on a known probe URL, map wallet_id to portal client_id."""
     base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
     if not base:
         return None
-    try:
-        r = httpx.get(
-            f"{base}/status",
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=15.0,
-        )
-    except httpx.RequestError as e:
-        logger.debug("Traction introspection request failed: %s", e)
-        return None
-    if r.status_code != 200:
-        logger.debug("Traction introspection GET /status returned %s", r.status_code)
+    headers = {"Authorization": f"Bearer {token}"}
+    ok = False
+    for path in _TRACTION_WALLET_INTROSPECTION_PATHS:
+        try:
+            r = httpx.get(f"{base}{path}", headers=headers, timeout=15.0)
+        except httpx.RequestError as e:
+            logger.debug("Traction introspection GET %s failed: %s", path, e)
+            continue
+        if r.status_code == 200:
+            ok = True
+            break
+        logger.debug("Traction introspection GET %s returned %s", path, r.status_code)
+    if not ok:
         return None
     try:
         payload = jwt.decode(token, options={"verify_signature": False})
@@ -73,18 +79,22 @@ def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
 
 def portal_token_rejected_http_detail() -> str:
     base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
-    status_target = f"{base}/status" if base else "(TRACTION_API_URL not set)/status"
+    wallet_probe = (
+        f"{base}/status or GET {base}/tenant/wallet"
+        if base
+        else "(TRACTION_API_URL not set)/status or …/tenant/wallet"
+    )
     return (
         "Token not accepted. Publisher: use POST /auth/token from this deployment (JWT_SECRET must match). "
-        f"Wallet: this backend must receive HTTP 200 from GET {status_target} with the same Bearer."
+        f"Wallet: this backend must receive HTTP 200 from GET {wallet_probe} with the same Bearer."
     )
 
 
 def decode_portal_token(token: str) -> dict | None:
     """
     Publisher portal session: issuer JWT from ``POST /auth/token``, or Traction wallet JWT
-    accepted only after ``GET {TRACTION_API_URL}/status`` with the same Bearer returns 200
-    (Traction verifies the token; no wallet jwt-secret on this service).
+    accepted only after ``GET {TRACTION_API_URL}/status`` or ``GET {TRACTION_API_URL}/tenant/wallet``
+    with the same Bearer returns 200 (Traction verifies the token; no wallet jwt-secret on this service).
     """
     pub = decodeJWT(token)
     if pub and pub.get("client_id"):
