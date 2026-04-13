@@ -1,7 +1,27 @@
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 from pydantic.json_schema import SkipJsonSchema
 from config import settings
+
+
+def issuer_registration_for_registrar(body: "IssuerRegistration") -> Dict[str, Any]:
+    """Normalize issuer registration for ``PublisherRegistrar.register_issuer`` (strip blanks)."""
+    registration = dict(body.model_dump())
+    mk = registration.get("multikey")
+    if isinstance(mk, str):
+        s = mk.strip()
+        if not s:
+            registration.pop("multikey", None)
+        else:
+            registration["multikey"] = s
+    dn = registration.get("display_name")
+    if isinstance(dn, str):
+        s = dn.strip()
+        if not s:
+            registration.pop("display_name", None)
+        else:
+            registration["display_name"] = s
+    return registration
 
 
 class BaseModel(BaseModel):
@@ -10,7 +30,15 @@ class BaseModel(BaseModel):
 
 
 class IssuerRegistration(BaseModel):
-    name: str = Field(example="Director of Petroleum Lands")
+    name: str = Field(
+        example="director-of-petroleum-lands",
+        description="Short identifier for the DID path (slug-style; spaces become hyphens).",
+    )
+    display_name: Optional[str] = Field(
+        default=None,
+        example="Director of Petroleum Lands",
+        description="Optional human-readable name for lists and the DID document; defaults to name.",
+    )
     scope: str = Field(example="Petroleum and Natural Gas Act")
     description: str = Field(
         example="An officer or employee of the ministry who is designated as the Director of Petroleum Lands by the minister."

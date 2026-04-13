@@ -68,10 +68,11 @@ class PublisherRegistrar:
             authorized_key = traction.create_did_web(did)
             traction.bind_key(authorized_key, multikey_kid)
 
+        label = (registration.get("display_name") or "").strip() or registration.get("name")
         # Create initial DID document
         did_document = DidDocument(
             id=did,
-            name=registration.get("name"),
+            name=label,
             description=registration.get("description"),
             authentication=[
                 multikey_kid,

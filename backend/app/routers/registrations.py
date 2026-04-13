@@ -2,7 +2,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from app.utils import generate_digest_multibase
-from app.models.registrations import IssuerRegistration, CredentialRegistration
+from app.models.registrations import (
+    CredentialRegistration,
+    IssuerRegistration,
+    issuer_registration_for_registrar,
+)
 from app.models.mongodb import (
     IssuerRecord,
     CredentialTypeRecord,
@@ -39,19 +43,20 @@ async def list_issuer_registrations():
 
 @router.post("/issuers", tags=["Admin"], dependencies=[Depends(check_api_key_header)])
 async def register_issuer(request_body: IssuerRegistration):
-    registration = vars(request_body)
+    registration = issuer_registration_for_registrar(request_body)
 
-    # Register issuer on DID Web server and create DID Document
+    # Register issuer on DID Web server and create DID document
     did_document, authorized_key = await PublisherRegistrar().register_issuer(
         registration
     )
 
+    stored_name = registration.get("display_name") or registration.get("name") or ""
     mongo = MongoClient()
     mongo.insert(
         "IssuerRecord",
         IssuerRecord(
             id=did_document.get("id"),
-            name=registration.get("name"),
+            name=str(stored_name),
             authorized_key=authorized_key,
         ).model_dump(),
     )

@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
 from app.models.mongodb import IssuerRecord
-from app.models.registrations import IssuerRegistration
+from app.models.registrations import IssuerRegistration, issuer_registration_for_registrar
 from app.plugins import MongoClient, MongoClientError, PublisherRegistrar
 from app.security import (
     TRACTION_WALLET_INTROSPECTION_PATHS,
@@ -56,19 +56,6 @@ async def publisher_list_issuers(_token: str = Depends(verify_portal_jwt_token))
     return JSONResponse(status_code=200, content={"issuers": out})
 
 
-def _issuer_registration_dict(body: IssuerRegistration) -> dict[str, Any]:
-    # IssuerRegistration.model_dump() already applies exclude_none=True (see app.models.registrations.BaseModel).
-    registration = dict(body.model_dump())
-    mk = registration.get("multikey")
-    if isinstance(mk, str):
-        s = mk.strip()
-        if not s:
-            registration.pop("multikey", None)
-        else:
-            registration["multikey"] = s
-    return registration
-
-
 @router.post("/issuers", tags=["Client"])
 async def publisher_register_issuer(
     body: IssuerRegistration,
@@ -78,7 +65,7 @@ async def publisher_register_issuer(
     Register an issuer (DID Web + Traction keys + Mongo), same behaviour as
     ``POST /registrations/issuers`` but authenticated with the portal Bearer instead of ``X-API-Key``.
     """
-    registration = _issuer_registration_dict(body)
+    registration = issuer_registration_for_registrar(body)
     registrar = PublisherRegistrar()
     try:
         did_document, authorized_key = await registrar.register_issuer(registration)
@@ -101,11 +88,12 @@ async def publisher_register_issuer(
         ) from e
 
     iid = did_document.get("id")
+    out_name = registration.get("display_name") or registration.get("name") or ""
     return JSONResponse(
         status_code=201,
         content={
             "id": str(iid) if iid is not None else "",
-            "name": str(registration.get("name") or ""),
+            "name": str(out_name),
         },
     )
 
