@@ -62,6 +62,13 @@ export type PublisherCredentialTypesResponse = {
   credential_types: PublisherCredentialTypeSummary[]
 }
 
+/** POST /publisher/credential-types */
+export type PublisherRegisterCredentialTypeResponse = {
+  type: string
+  version: string
+  issuer: string
+}
+
 /** POST /test-suite/validate */
 export type TestSuiteValidateResponse = {
   success: boolean

@@ -4,6 +4,7 @@ from typing import Any
 
 import jwt
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pymongo.errors import PyMongoError
 
@@ -384,6 +385,84 @@ def test_publisher_credential_types_503_on_mongo_error(
     )
     r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 503
+
+
+def test_publisher_register_credential_type_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.post(
+        "/publisher/credential-types",
+        json={
+            "type": "T",
+            "version": "1",
+            "issuer": "did:web:x",
+            "corePaths": {"entityId": "$.a", "cardinalityId": "$.b"},
+            "subjectType": "St",
+            "subjectPaths": {},
+            "relatedResources": {"context": "https://example.com/c.jsonld"},
+        },
+    )
+    assert r.status_code == 403
+
+
+def test_publisher_register_credential_type_success(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    called: dict[str, Any] = {}
+
+    async def fake_core(reg: dict[str, Any]) -> dict[str, Any]:
+        called["reg"] = reg
+        return {"type": ["VerifiableCredential"]}
+
+    monkeypatch.setattr("app.routers.publisher_portal.register_credential_type_core", fake_core)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    body: dict[str, Any] = {
+        "type": "MyCt",
+        "version": "2.0",
+        "issuer": "did:web:issuer",
+        "corePaths": {"entityId": "$.cid", "cardinalityId": "$.cn"},
+        "subjectType": "MySubject",
+        "subjectPaths": {"k": "$.p"},
+        "relatedResources": {"context": "https://ctx.example/foo.jsonld"},
+    }
+    r = portal_client.post(
+        "/publisher/credential-types",
+        headers={"Authorization": f"Bearer {token}"},
+        json=body,
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data == {"type": "MyCt", "version": "2.0", "issuer": "did:web:issuer"}
+    assert called["reg"]["type"] == "MyCt"
+    assert called["reg"]["corePaths"]["entityId"] == "$.cid"
+
+
+def test_publisher_register_credential_type_duplicate(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_core(_reg: dict[str, Any]) -> dict[str, Any]:
+        raise HTTPException(status_code=409, detail="Duplicate entry")
+
+    monkeypatch.setattr("app.routers.publisher_portal.register_credential_type_core", fake_core)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.post(
+        "/publisher/credential-types",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "type": "T",
+            "version": "1",
+            "issuer": "did:web:x",
+            "corePaths": {"entityId": "$.a", "cardinalityId": "$.b"},
+            "subjectType": "St",
+            "subjectPaths": {},
+            "relatedResources": {"context": "https://example.com/c.jsonld"},
+        },
+    )
+    assert r.status_code == 409
 
 
 def test_publisher_register_issuer_requires_auth(portal_client: TestClient) -> None:

@@ -10,8 +10,9 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
 from app.models.mongodb import IssuerRecord
-from app.models.registrations import IssuerRegistration, issuer_registration_for_registrar
+from app.models.registrations import CredentialRegistration, IssuerRegistration, issuer_registration_for_registrar
 from app.plugins import MongoClient, MongoClientError, PublisherRegistrar
+from app.routers.registrations import register_credential_type_core
 from app.security import (
     TRACTION_WALLET_INTROSPECTION_PATHS,
     decode_portal_token,
@@ -137,6 +138,27 @@ async def publisher_list_credential_types(_token: str = Depends(verify_portal_jw
         ) from e
 
     return JSONResponse(status_code=200, content={"credential_types": out})
+
+
+@router.post("/credential-types", tags=["Client"])
+async def publisher_register_credential_type(
+    body: CredentialRegistration,
+    _token: str = Depends(verify_portal_jwt_token),
+):
+    """
+    Register a credential type (same behaviour as ``POST /registrations/credentials``) using the portal Bearer
+    instead of ``X-API-Key``. Response is a small summary; the admin route still returns the full template.
+    """
+    credential_registration = body.model_dump()
+    await register_credential_type_core(credential_registration)
+    return JSONResponse(
+        status_code=201,
+        content={
+            "type": credential_registration.get("type") or "",
+            "version": credential_registration.get("version") or "",
+            "issuer": credential_registration.get("issuer") or "",
+        },
+    )
 
 
 @router.get("/session", tags=["Client"])
