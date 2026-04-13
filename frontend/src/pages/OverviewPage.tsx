@@ -6,6 +6,7 @@ import {
   Heading,
   SimpleGrid,
   Skeleton,
+  Stack,
   Stat,
   StatHelpText,
   StatLabel,
@@ -87,15 +88,32 @@ export function OverviewPage() {
 
   const env = session?.environment
   const claims = session?.claims
+  const clientId = claims?.client_id
+  const defaultTenantId = env?.traction_tenant_id
+  const sessionAndTenantDiffer = Boolean(
+    clientId && defaultTenantId && clientId !== defaultTenantId,
+  )
 
   return (
     <Box>
       <Heading size="lg" mb={2} fontFamily="heading">
         Overview
       </Heading>
-      <Text color={mutedText} mb={10}>
-        Signed in as <strong>{claims?.client_id}</strong>
-      </Text>
+      <Stack spacing={2} mb={10}>
+        <Text color={mutedText}>
+          Session <strong style={{ fontFamily: 'monospace' }}>{clientId ?? '—'}</strong>
+          <Text as="span" fontSize="sm" display="block" mt={1}>
+            From your JWT: <code>client_id</code> (publisher token) or <code>wallet_id</code> (Traction wallet
+            token).
+          </Text>
+        </Text>
+        {sessionAndTenantDiffer ? (
+          <Text fontSize="sm" color={mutedText}>
+            This id is not always the same as <strong>Default Traction tenant</strong> below — that value is the
+            server&apos;s <code>TRACTION_TENANT_ID</code> for backend calls to Traction.
+          </Text>
+        ) : null}
+      </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={10}>
         <Stat
@@ -136,14 +154,18 @@ export function OverviewPage() {
           <Field label="Title" value={env?.project_title} />
           <Field label="Version" value={env?.project_version} />
           <Field label="Publisher domain" value={env?.domain} />
-          <Field label="Traction tenant" value={env?.traction_tenant_id} />
+          <Field
+            label="Default Traction tenant"
+            hint="TRACTION_TENANT_ID on this deployment (backend → Traction). May differ from your wallet session id."
+            value={env?.traction_tenant_id}
+          />
         </SimpleGrid>
       </Box>
     </Box>
   )
 }
 
-function Field({ label, value }: { label: string; value: string | undefined }) {
+function Field({ label, value, hint }: { label: string; value: string | undefined; hint?: string }) {
   return (
     <Box>
       <Text fontSize="xs" textTransform="uppercase" letterSpacing="wider" color="gray.500" mb={1}>
@@ -152,6 +174,11 @@ function Field({ label, value }: { label: string; value: string | undefined }) {
       <Badge colorScheme="gray" fontSize="sm" px={2} py={1} rounded="md" maxW="full" whiteSpace="normal">
         {value ?? '—'}
       </Badge>
+      {hint ? (
+        <Text fontSize="xs" color="gray.500" mt={2} lineHeight="short">
+          {hint}
+        </Text>
+      ) : null}
     </Box>
   )
 }
