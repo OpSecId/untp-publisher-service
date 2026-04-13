@@ -37,3 +37,30 @@ From the repo root:
 docker build -t orgbook-publisher-service -f backend/Dockerfile backend/
 docker run -p 8000:8000 orgbook-publisher-service
 ```
+
+`docker run` **without MongoDB** will fail: on startup, `main.py` runs `TractionController().provision()`, which opens Mongo and creates indexes. The default **`MONGO_HOST` is `localhost`**, which inside a container is only the container itself, not your host or a sibling service.
+
+Set either a single URI or the discrete fields so PyMongo can reach a real server:
+
+| Variable | Purpose |
+|----------|---------|
+| **`MONGO_URL`** | Optional full MongoDB URI (e.g. `mongodb://user:pass@host:27017/?authSource=admin`). When set and non-empty, **host/port/user/password/MONGO_DB are ignored** for the connection. The app still stores data in the **`orgbook-publisher`** database. |
+| **`MONGO_HOST`** | Used only if `MONGO_URL` is unset (e.g. Compose service name `mongo`, not `localhost` in a lone container) |
+| **`MONGO_PORT`** | `27017` |
+| **`MONGO_USER`** / **`MONGO_PASSWORD`** | Match your MongoDB user (defaults `dev` / `dev`) |
+| **`MONGO_DB`** | Passed to PyMongo as `authSource` when not using `MONGO_URL` (default `dev`) |
+
+You still need the rest of your deployment secrets and URLs (**`JWT_SECRET`**, **`TRACTION_*`**, **`DOMAIN`**, etc.) from [`config.py`](config.py) / your `.env` template.
+
+Example with a Compose network where the database service is named `mongo`:
+
+```bash
+docker run -p 8000:8000 \
+  --network your_compose_default \
+  -e MONGO_HOST=mongo \
+  -e MONGO_PORT=27017 \
+  -e MONGO_USER=dev \
+  -e MONGO_PASSWORD=dev \
+  -e MONGO_DB=dev \
+  orgbook-publisher-service
+```

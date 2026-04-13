@@ -54,6 +54,12 @@ class Settings(BaseSettings):
     JWT_SECRET: str = Field(default="dev-local")
     JWT_ALGORITHM: str = "HS256"
 
+    #: Full MongoDB connection URI (e.g. Railway ``MONGO_URL``). When non-empty, this is used
+    #: exclusively and ``MONGO_HOST`` / ``MONGO_PORT`` / ``MONGO_USER`` / ``MONGO_PASSWORD`` /
+    #: ``MONGO_DB`` are ignored for the client handshake. Application data still uses the
+    #: ``orgbook-publisher`` database name in code.
+    MONGO_URL: str | None = Field(default=None)
+
     MONGO_HOST: str = Field(default="localhost")
     MONGO_PORT: str = Field(default="27017")
     MONGO_USER: str = Field(default="dev")
