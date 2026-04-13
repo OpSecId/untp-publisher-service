@@ -1,4 +1,4 @@
-"""UNTP validation HTTP surface for CI / harness (enabled only when ``TEST_SUITE`` is true)."""
+"""UNTP validation HTTP surface (``POST /test-suite/validate``); registered on full app and minimal ``TEST_SUITE`` app."""
 
 from __future__ import annotations
 

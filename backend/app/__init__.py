@@ -31,11 +31,7 @@ def build_app(cfg: Settings) -> FastAPI:
         cfg.LOGGER.info("Server status OK!")
         return JSONResponse(status_code=200, content={"status": "ok"})
 
-    if cfg.TEST_SUITE:
-        from app.routers import test_suite
-
-        api_router.include_router(test_suite.router)
-    else:
+    if not cfg.TEST_SUITE:
         from app.routers import (
             authentication,
             credentials,
@@ -49,6 +45,10 @@ def build_app(cfg: Settings) -> FastAPI:
         api_router.include_router(credentials.router)
         api_router.include_router(related_resources.router)
         api_router.include_router(publisher_portal.router)
+
+    from app.routers import test_suite
+
+    api_router.include_router(test_suite.router)
 
     app.include_router(api_router)
     return app

@@ -23,7 +23,7 @@ Set **`TEST_SUITE=true`** in the environment to run a **minimal** app: only **`G
 - **`POST /test-suite/validate`** — JSON body is the UNTP document; optional query **`kind`** (`dcc_credential` or `dcc_attestation`) skips automatic `type` detection.
 - Response: **`success`**, **`validation_checks`** (same structure as the validator’s per-check report), **`artefact_kind`**, and **`error`** when validation fails.
 
-When **`TEST_SUITE`** is unset or false, **`/test-suite/*`** routes are omitted entirely.
+The same **`POST /test-suite/validate`** route is also registered on the **full** publisher app (so the portal **Test suite** page can call it without enabling **`TEST_SUITE`**).
 
 ## UNTP bundled artefacts (DCC + DIA)
 

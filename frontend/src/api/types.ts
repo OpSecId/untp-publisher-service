@@ -29,3 +29,11 @@ export type TractionWalletProbeResponse = {
   probes: TractionWalletProbeRow[]
   detail?: string
 }
+
+/** POST /test-suite/validate */
+export type TestSuiteValidateResponse = {
+  success: boolean
+  validation_checks: Record<string, unknown>
+  artefact_kind: string | null
+  error?: string
+}
