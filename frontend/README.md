@@ -19,7 +19,6 @@ The portal accepts **either**:
 Optional `.env` in this folder (copy from `.env.example`; repo root `.env` is for the backend):
 
 - `VITE_API_BASE_URL` — override API prefix (e.g. `https://publisher.example` in production). **Must be a browser-reachable HTTPS URL** when the SPA is served over HTTPS (not `http://` and not Railway `*.railway.internal` — those trigger mixed-content blocks). Omit it to use same-origin `/api` (then configure your edge/nginx to reverse-proxy `/api` to the API).
-- `VITE_TRACTION_URL` — optional tenant proxy URL for future browser-side Traction calls (CORS must allow your origin).
 - `VITE_DEV_PUBLISHER_TOKEN` — **dev only:** any JWT the backend accepts for `/publisher/session` (publisher `/auth/token` **or** Traction wallet token if the API is configured for it). On `npm run dev`, if session storage has no token yet, it is seeded so you can skip clipboard sign-in. **Never** set this when building a production image — Vite inlines `VITE_*` into the bundle. If you seed a **wallet** JWT, the **backend** must have `TRACTION_API_URL` pointing at that tenant proxy (the default `http://localhost` is not enough); otherwise `/publisher/session` returns **403** and the browser console shows “Failed to load resource”.
 
 ## Docker (static + nginx)
@@ -30,8 +29,6 @@ Build args are **baked into the JS** at image build time (Vite):
 docker build -t untp-publisher-ui -f frontend/Dockerfile frontend/ \
   --build-arg VITE_API_BASE_URL=https://your-api.example.com
 ```
-
-Optional: `--build-arg VITE_TRACTION_URL=https://your-tenant-proxy.example.com`
 
 Run:
 

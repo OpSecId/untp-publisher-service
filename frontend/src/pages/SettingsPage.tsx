@@ -30,7 +30,6 @@ import type { PublisherSession } from '../api/types'
 export function SettingsPage() {
   const { session, loading, error } = usePublisherSession()
   const toast = useToast()
-  const tractionConfigured = Boolean(import.meta.env.VITE_TRACTION_URL)
 
   const [adminKey, setAdminKey] = useState('')
   const [rotateIssuerId, setRotateIssuerId] = useState('')
@@ -109,14 +108,6 @@ export function SettingsPage() {
         <Stack spacing={3} fontSize="sm">
           <Row label="VITE_API_BASE_URL" value={import.meta.env.VITE_API_BASE_URL || '(default /api)'} />
           <Row label="Resolved API base" value={apiBaseUrl()} />
-          <Row
-            label="VITE_TRACTION_URL"
-            value={import.meta.env.VITE_TRACTION_URL || '(not set)'}
-          />
-          <Text fontSize="xs" color="gray.500">
-            Set <code>VITE_TRACTION_URL</code> if you run a CORS-enabled tenant proxy for direct browser calls.
-            {!tractionConfigured && ' Currently not configured.'}
-          </Text>
         </Stack>
       </Box>
 
@@ -139,7 +130,7 @@ export function SettingsPage() {
         ) : null}
         <Stack spacing={3} fontSize="sm">
           <Row label="Traction API URL" value={env?.traction_api_url} />
-          <Row label="Traction tenant ID" value={env?.traction_tenant_id} />
+          <Row label="Publisher Tenant ID" value={env?.traction_tenant_id} />
           <WalletTractionProbePanel tractionApiUrl={env?.traction_api_url} />
           <Row label="DID web(vh) server" value={env?.did_web_server_url} />
           <Row label="Issuer registry" value={env?.issuer_registry_url} />

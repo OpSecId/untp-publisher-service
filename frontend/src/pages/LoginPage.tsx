@@ -16,6 +16,7 @@ import { normalizePortalAccessToken } from '../auth/normalizeToken'
 import { getAccessToken, setAccessToken } from '../auth/storage'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
 import { PoweredByTraction } from '../components/PoweredByTraction'
+import { BC_THEME_CONFIG } from '../config/bcThemeColors'
 
 type Phase = 'landing' | 'error' | 'manual'
 
@@ -85,8 +86,8 @@ export function LoginPage() {
   const landingBg = useColorModeValue('bc.lightGrayBg', 'brand.900')
   const landingColor = useColorModeValue('bc.textPrimary', 'white')
   const landingMesh = useColorModeValue(
-    'linear(to-br, #F1F8FE 0%, #FAF9F8 50%, #F3F2F1 100%)',
-    'linear(to-br, #011829 0%, #01264C 55%, #1a1008 100%)',
+    BC_THEME_CONFIG.gradients.loginLandingLight,
+    BC_THEME_CONFIG.gradients.loginLandingDark,
   )
   const heroMuted = useColorModeValue('gray.600', 'whiteAlpha.800')
   const outlineBtnBorder = useColorModeValue('gray.300', 'whiteAlpha.400')
@@ -94,9 +95,12 @@ export function LoginPage() {
   const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const outlineBtnHoverBorder = useColorModeValue('gray.400', 'whiteAlpha.600')
   const loginFooterBorder = useColorModeValue('blackAlpha.200', 'whiteAlpha.150')
-  const loginStickyBg = useColorModeValue('rgba(255,255,255,0.92)', 'rgba(23,25,35,0.92)')
+  const loginStickyBg = useColorModeValue(
+    BC_THEME_CONFIG.appChrome.stickyBarBgLight,
+    BC_THEME_CONFIG.appChrome.stickyBarBgDark,
+  )
   const loginStickyBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const loginStickyBlur = 'saturate(180%) blur(8px)'
+  const loginStickyBlur = BC_THEME_CONFIG.appChrome.backdropBlur
   const loginNavTitleColor = useColorModeValue('gray.900', 'white')
 
   const loginTopNav = (

@@ -1,5 +1,5 @@
 import {
-  Avatar,
+  Box,
   Button,
   Menu,
   MenuButton,
@@ -7,10 +7,34 @@ import {
   MenuItem,
   MenuList,
   SkeletonCircle,
-  Text,
 } from '@chakra-ui/react'
+import { useMemo } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { toSvg } from 'jdenticon'
 import { MdLogout, MdScience, MdSettings } from 'react-icons/md'
+
+const ICON_PX = 36
+
+function ProfileIdenticon({ seed, sizePx }: { seed: string; sizePx: number }) {
+  const svg = useMemo(() => toSvg(seed.trim() || 'guest', sizePx), [seed, sizePx])
+  return (
+    <Box
+      boxSize={`${sizePx}px`}
+      borderRadius="full"
+      overflow="hidden"
+      flexShrink={0}
+      lineHeight={0}
+      dangerouslySetInnerHTML={{ __html: svg }}
+      sx={{
+        '& > svg': {
+          display: 'block',
+          width: '100%',
+          height: '100%',
+        },
+      }}
+    />
+  )
+}
 
 type Props = {
   clientId: string | undefined
@@ -36,18 +60,10 @@ export function ProfileMenu({ clientId, loading, onSignOut }: Props) {
         {loading ? (
           <SkeletonCircle boxSize="9" startColor="gray.200" endColor="gray.400" />
         ) : (
-          <Avatar size="sm" name={clientId ?? 'Publisher'} bg="brand.500" color="white" />
+          <ProfileIdenticon seed={clientId ?? 'guest'} sizePx={ICON_PX} />
         )}
       </MenuButton>
       <MenuList zIndex={20} maxW="sm">
-        {clientId ? (
-          <>
-            <Text px={3} py={2} fontSize="xs" color="gray.500" fontFamily="mono" noOfLines={3} title={clientId}>
-              {clientId}
-            </Text>
-            <MenuDivider />
-          </>
-        ) : null}
         <MenuItem as={RouterLink} to="/test-suite" icon={<MdScience />}>
           Test suite
         </MenuItem>

@@ -177,7 +177,7 @@ export function IssuersPage() {
         </Button>
       </Box>
 
-      <Modal isOpen={registerModal.isOpen} onClose={closeRegisterModal} size="lg" motionPreset="slideInBottom">
+      <Modal isOpen={registerModal.isOpen} onClose={closeRegisterModal} size="xl" motionPreset="slideInBottom">
         <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
         <ModalContent
           borderRadius="2xl"

@@ -7,7 +7,6 @@ import {
   IconButton,
   SimpleGrid,
   Skeleton,
-  Stack,
   Stat,
   StatHelpText,
   StatLabel,
@@ -42,7 +41,6 @@ export function OverviewPage() {
   const [error, setError] = useState<string | null>(null)
   const cardBg = useColorModeValue('white', 'gray.700')
   const cardBorder = useColorModeValue('gray.100', 'gray.600')
-  const mutedText = useColorModeValue('gray.600', 'gray.400')
   const sectionTitle = useColorModeValue('gray.700', 'gray.200')
 
   const loadOverview = useCallback(
@@ -110,32 +108,12 @@ export function OverviewPage() {
 
   const env = session?.environment
   const claims = session?.claims
-  const clientId = claims?.client_id
-  const defaultTenantId = env?.traction_tenant_id
-  const sessionAndTenantDiffer = Boolean(
-    clientId && defaultTenantId && clientId !== defaultTenantId,
-  )
 
   return (
     <Box>
-      <Heading size="lg" mb={2} fontFamily="heading">
+      <Heading size="lg" mb={8} fontFamily="heading">
         Overview
       </Heading>
-      <Stack spacing={2} mb={10}>
-        <Text color={mutedText}>
-          Session <strong style={{ fontFamily: 'monospace' }}>{clientId ?? '—'}</strong>
-          <Text as="span" fontSize="sm" display="block" mt={1}>
-            From your JWT: <code>client_id</code> (publisher token) or <code>wallet_id</code> (Traction wallet
-            token).
-          </Text>
-        </Text>
-        {sessionAndTenantDiffer ? (
-          <Text fontSize="sm" color={mutedText}>
-            This id is not always the same as <strong>Default Traction tenant</strong> below — that value is the
-            server&apos;s <code>TRACTION_TENANT_ID</code> for backend calls to Traction.
-          </Text>
-        ) : null}
-      </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={10}>
         <Stat
@@ -196,11 +174,7 @@ export function OverviewPage() {
           <Field label="Title" value={env?.project_title} />
           <Field label="Version" value={env?.project_version} />
           <Field label="Publisher domain" value={env?.domain} />
-          <Field
-            label="Default Traction tenant"
-            hint="TRACTION_TENANT_ID on this deployment (backend → Traction). May differ from your wallet session id."
-            value={env?.traction_tenant_id}
-          />
+          <Field label="Publisher Tenant ID" value={env?.traction_tenant_id} />
         </SimpleGrid>
       </Box>
     </Box>

@@ -2,6 +2,7 @@ import { Box, Flex, HStack, Text, useColorModeValue } from '@chakra-ui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { FiCheck } from 'react-icons/fi'
+import { BC_THEME_CONFIG } from '../config/bcThemeColors'
 
 export type WizardStepMeta = { title: string; subtitle: string }
 
@@ -18,12 +19,15 @@ export function WizardHeaderChrome({
   steps: readonly WizardStepMeta[]
   activeIndex: number
 }) {
-  const headerBg = useColorModeValue('linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #eef2ff 100%)', 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)')
+  const headerBg = useColorModeValue(
+    BC_THEME_CONFIG.gradients.wizardHeaderLight,
+    BC_THEME_CONFIG.gradients.wizardHeaderDark,
+  )
   const eyebrowColor = useColorModeValue('brand.600', 'brand.300')
   const titleColor = useColorModeValue('gray.800', 'white')
   const subtitleColor = useColorModeValue('gray.600', 'gray.400')
   const railMuted = useColorModeValue('gray.200', 'gray.600')
-  const railDone = useColorModeValue('teal.400', 'teal.300')
+  const railDone = useColorModeValue(BC_THEME_CONFIG.wizard.railDoneLight, BC_THEME_CONFIG.wizard.railDoneDark)
   const upcomingBg = useColorModeValue('white', 'gray.800')
   const upcomingBorder = useColorModeValue('gray.200', 'gray.600')
   const upcomingColor = useColorModeValue('gray.600', 'gray.400')
@@ -46,7 +50,7 @@ export function WizardHeaderChrome({
         left={0}
         right={0}
         h="4px"
-        bgGradient="linear(to-r, #0ea5e9, #6366f1, #a855f7, #ec4899)"
+        bgGradient={BC_THEME_CONFIG.gradients.wizardAccentBar}
         borderTopRadius="2xl"
       />
       <Text

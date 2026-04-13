@@ -63,7 +63,8 @@ const FIXED_CREDENTIAL_VERSION = '0.0.1'
 const DIGITAL_CONFORMITY_CREDENTIAL_TYPE = 'DigitalConformityCredential'
 
 const CREATE_WIZARD_STEPS = [
-  { title: 'Credential identity', subtitle: 'Digital Conformity Credential and display name' },
+  { title: 'Description', subtitle: 'Human-readable summary; used as the VC template name' },
+  { title: 'Credential identity', subtitle: 'Digital Conformity Credential and template version' },
   { title: 'Issuing party', subtitle: 'Which registered issuer signs this template' },
   { title: 'Resources & paths', subtitle: 'Context, JSONPaths, and optional DCC paths' },
 ] as const
@@ -77,7 +78,7 @@ export function CredentialTemplatesPage() {
   const [issuers, setIssuers] = useState<{ id: string; name: string }[]>([])
   const [loadingIssuers, setLoadingIssuers] = useState(false)
 
-  const [credName, setCredName] = useState('')
+  const [credDescription, setCredDescription] = useState('')
   const [issuerDid, setIssuerDid] = useState('')
   const [contextUrl, setContextUrl] = useState('')
   const [legalActUrl, setLegalActUrl] = useState('')
@@ -140,7 +141,7 @@ export function CredentialTemplatesPage() {
   }, [createModal.isOpen, loadIssuers])
 
   const resetCreateForm = useCallback(() => {
-    setCredName('')
+    setCredDescription('')
     setIssuerDid('')
     setContextUrl('')
     setLegalActUrl('')
@@ -165,19 +166,23 @@ export function CredentialTemplatesPage() {
 
   const goNextStep = () => {
     if (createStep === 0) {
-      if (!credName.trim()) {
-        toast({ title: 'Name is required', status: 'warning' })
+      if (!credDescription.trim()) {
+        toast({ title: 'Description is required', status: 'warning' })
         return
       }
       setCreateStep(1)
       return
     }
     if (createStep === 1) {
+      setCreateStep(2)
+      return
+    }
+    if (createStep === 2) {
       if (!issuerDid.trim()) {
         toast({ title: 'Select or enter an issuer DID', status: 'warning' })
         return
       }
-      setCreateStep(2)
+      setCreateStep(3)
     }
   }
 
@@ -193,11 +198,11 @@ export function CredentialTemplatesPage() {
     const iss = issuerDid.trim()
     const st = DIGITAL_CONFORMITY_CREDENTIAL_TYPE
     const ctx = contextUrl.trim()
-    const desc = credName.trim()
+    const desc = credDescription.trim()
     if (!desc || !iss || !ctx) {
       toast({
         title: 'Complete all wizard steps',
-        description: 'Name, issuer, and context URL are required.',
+        description: 'Description, issuer, and context URL are required.',
         status: 'warning',
       })
       return
@@ -307,7 +312,7 @@ export function CredentialTemplatesPage() {
       <Modal
         isOpen={createModal.isOpen}
         onClose={closeCreateModal}
-        size="xl"
+        size="2xl"
         motionPreset="slideInBottom"
         scrollBehavior="inside"
       >
@@ -335,6 +340,24 @@ export function CredentialTemplatesPage() {
                 {createStep === 0 ? (
                   <Stack spacing={4}>
                     <FormControl isRequired>
+                      <FormLabel>Description</FormLabel>
+                      <Textarea
+                        value={credDescription}
+                        onChange={(e) => setCredDescription(e.target.value)}
+                        placeholder="Human-readable summary for this credential template (used as the VC template name)"
+                        size="sm"
+                        rows={5}
+                        borderRadius="lg"
+                        resize="vertical"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Shown on the verifiable credential template and in issuer tooling.</FormHelperText>
+                    </FormControl>
+                  </Stack>
+                ) : null}
+                {createStep === 1 ? (
+                  <Stack spacing={4}>
+                    <FormControl isRequired>
                       <FormLabel>Type</FormLabel>
                       <Select
                         value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE}
@@ -345,18 +368,6 @@ export function CredentialTemplatesPage() {
                         <option value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE}>Digital Conformity Credential</option>
                       </Select>
                       <FormHelperText>Additional credential types may be added later.</FormHelperText>
-                    </FormControl>
-                    <FormControl isRequired>
-                      <FormLabel>Name</FormLabel>
-                      <Input
-                        value={credName}
-                        onChange={(e) => setCredName(e.target.value)}
-                        placeholder="Display name for this template (stored as the VC name)"
-                        size="sm"
-                        borderRadius="lg"
-                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
-                      />
-                      <FormHelperText>Shown on the verifiable credential template and in issuer tooling.</FormHelperText>
                     </FormControl>
                     <FormControl>
                       <FormLabel>Version</FormLabel>
@@ -371,7 +382,7 @@ export function CredentialTemplatesPage() {
                     </FormControl>
                   </Stack>
                 ) : null}
-                {createStep === 1 ? (
+                {createStep === 2 ? (
                   <Stack spacing={4}>
                     <Box
                       fontSize="sm"
@@ -423,7 +434,7 @@ export function CredentialTemplatesPage() {
                     </FormControl>
                   </Stack>
                 ) : null}
-                {createStep === 2 ? (
+                {createStep === 3 ? (
                   <Stack spacing={4}>
                     <FormControl isRequired>
                       <FormLabel>JSON-LD context URL</FormLabel>

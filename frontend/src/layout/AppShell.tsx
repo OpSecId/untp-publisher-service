@@ -5,8 +5,8 @@ import {
   Heading,
   HStack,
   Icon,
+  Image,
   Link,
-  Text,
   useColorModeValue,
   VStack,
 } from '@chakra-ui/react'
@@ -17,6 +17,7 @@ import { ColorModeToggle, type ColorModeToggleVariant } from '../components/Colo
 import { PoweredByTraction } from '../components/PoweredByTraction'
 import { ProfileMenu } from '../components/ProfileMenu'
 import { usePublisherSession } from '../hooks/usePublisherSession'
+import { BC_THEME_CONFIG } from '../config/bcThemeColors'
 
 const navItems = [
   { to: '/', label: 'Overview', icon: MdDashboard },
@@ -38,13 +39,16 @@ export function AppShell() {
   const navIdleColor = useColorModeValue('gray.600', 'gray.300')
   const sidebarBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const mainBg = useColorModeValue('bc.lightGrayBg', 'gray.800')
-  const mobileBarColor = useColorModeValue('gray.900', 'white')
+  const barColor = useColorModeValue('gray.900', 'white')
   const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
   const navHoverInactiveBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.150')
   const mobileFooterBorder = useColorModeValue('gray.200', 'gray.700')
-  const topBarBg = useColorModeValue('rgba(255,255,255,0.92)', 'rgba(23,25,35,0.92)')
+  const topBarBg = useColorModeValue(
+    BC_THEME_CONFIG.appChrome.stickyBarBgLight,
+    BC_THEME_CONFIG.appChrome.stickyBarBgDark,
+  )
   const topBarBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const backdropBlur = 'saturate(180%) blur(8px)'
+  const backdropBlur = BC_THEME_CONFIG.appChrome.backdropBlur
 
   const logout = () => {
     setAccessToken(null)
@@ -61,100 +65,65 @@ export function AppShell() {
   )
 
   return (
-    <Flex minH="100vh">
+    <Flex direction="column" minH="100vh">
       <Box
-        as="aside"
-        w="260px"
-        flexShrink={0}
-        bg={sidebarBg}
-        color={sidebarColor}
-        px={6}
-        py={8}
-        display={{ base: 'none', md: 'flex' }}
-        flexDirection="column"
-        minH="100vh"
+        as="header"
+        w="100%"
+        position="sticky"
+        top={0}
+        zIndex={20}
+        bg={topBarBg}
+        borderBottomWidth="1px"
+        borderColor={topBarBorder}
+        backdropFilter={backdropBlur}
+        sx={{ WebkitBackdropFilter: backdropBlur }}
+        color={barColor}
       >
-        <Heading size="md" fontWeight="700" letterSpacing="-0.02em" color={brandColor} mb={10}>
-          UNTP Publisher
-        </Heading>
-        <VStack align="stretch" spacing={1}>
-          {navItems.map(({ to, label, icon }) => {
-            const active = location.pathname === to
-            return (
-              <Link
-                key={to}
-                as={RouterLink}
-                to={to}
-                display="flex"
-                alignItems="center"
-                gap={3}
-                px={3}
-                py={2.5}
-                rounded="lg"
-                fontWeight="500"
-                bg={active ? navActiveBg : 'transparent'}
-                color={active ? navActiveColor : navIdleColor}
-                _hover={{
-                  bg: active ? navActiveBg : navHoverInactiveBg,
-                  textDecoration: 'none',
-                  color: navActiveColor,
-                }}
-              >
-                <Icon as={icon} boxSize={5} />
-                {label}
-              </Link>
-            )
-          })}
-        </VStack>
-        <Box flex="1" minH={4} aria-hidden />
-        <Box pt={8} mt={12} borderTopWidth="1px" borderColor={sidebarBorder}>
-          <PoweredByTraction justify="flex-start" />
-        </Box>
+        <Flex align="center" justify="space-between" px={{ base: 4, md: 8 }} py={3} gap={4}>
+          <Link
+            as={RouterLink}
+            to="/"
+            display="flex"
+            alignItems="center"
+            gap={3}
+            minW={0}
+            _hover={{ textDecoration: 'none', opacity: 0.92 }}
+            aria-label="UNTP Publisher home"
+          >
+            <Box flexShrink={0} lineHeight={0} aria-hidden>
+              <Image
+                src="/favicon.svg"
+                alt=""
+                h={{ base: '28px', md: '32px' }}
+                w={{ base: '28px', md: '32px' }}
+                objectFit="contain"
+                draggable={false}
+              />
+            </Box>
+            <Heading size="md" fontWeight="700" letterSpacing="-0.02em" color={brandColor} noOfLines={1}>
+              UNTP Publisher
+            </Heading>
+          </Link>
+          {accountControls}
+        </Flex>
       </Box>
 
-      <Flex direction="column" flex="1" minW={0}>
-        <Box
-          as="header"
-          position="sticky"
-          top={0}
-          zIndex={10}
-          display={{ base: 'none', md: 'block' }}
-          bg={topBarBg}
-          borderBottomWidth="1px"
-          borderColor={topBarBorder}
-          backdropFilter={backdropBlur}
-          sx={{ WebkitBackdropFilter: backdropBlur }}
-        >
-          <Flex align="center" justify="flex-end" px={{ base: 4, md: 8 }} py={3}>
-            {accountControls}
-          </Flex>
-        </Box>
-
+      <Flex
+        flex="1"
+        direction={{ base: 'column', md: 'row' }}
+        minH={0}
+        minW={0}
+        align="stretch"
+      >
         <Box
           display={{ base: 'block', md: 'none' }}
-          position="sticky"
-          top={0}
-          zIndex={10}
-          bg={topBarBg}
           borderBottomWidth="1px"
           borderColor={topBarBorder}
-          backdropFilter={backdropBlur}
-          sx={{ WebkitBackdropFilter: backdropBlur }}
-          color={mobileBarColor}
+          bg={topBarBg}
+          px={4}
+          py={3}
         >
-          <Flex align="center" justify="space-between" px={4} py={3} gap={2}>
-            <Text fontWeight="700">UNTP Publisher</Text>
-            {accountControls}
-          </Flex>
-          <HStack
-            spacing={2}
-            flexWrap="wrap"
-            px={4}
-            pb={3}
-            borderTopWidth="1px"
-            borderColor={topBarBorder}
-            pt={2}
-          >
+          <HStack spacing={2} flexWrap="wrap">
             {navItems.map(({ to, label }) => (
               <Button
                 key={to}
@@ -170,20 +139,68 @@ export function AppShell() {
           </HStack>
         </Box>
 
-        <Box as="main" flex="1" bg={mainBg} p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
-          <Outlet />
-        </Box>
         <Box
-          as="footer"
-          display={{ base: 'block', md: 'none' }}
-          borderTopWidth="1px"
-          borderColor={mobileFooterBorder}
-          bg={mainBg}
-          py={4}
-          px={4}
+          as="aside"
+          w={{ base: 'full', md: '260px' }}
+          flexShrink={0}
+          bg={sidebarBg}
+          color={sidebarColor}
+          px={6}
+          py={8}
+          display={{ base: 'none', md: 'flex' }}
+          flexDirection="column"
         >
-          <PoweredByTraction />
+          <VStack align="stretch" spacing={1}>
+            {navItems.map(({ to, label, icon }) => {
+              const active = location.pathname === to
+              return (
+                <Link
+                  key={to}
+                  as={RouterLink}
+                  to={to}
+                  display="flex"
+                  alignItems="center"
+                  gap={3}
+                  px={3}
+                  py={2.5}
+                  rounded="lg"
+                  fontWeight="500"
+                  bg={active ? navActiveBg : 'transparent'}
+                  color={active ? navActiveColor : navIdleColor}
+                  _hover={{
+                    bg: active ? navActiveBg : navHoverInactiveBg,
+                    textDecoration: 'none',
+                    color: navActiveColor,
+                  }}
+                >
+                  <Icon as={icon} boxSize={5} />
+                  {label}
+                </Link>
+              )
+            })}
+          </VStack>
+          <Box flex="1" minH={4} aria-hidden />
+          <Box pt={8} mt={12} borderTopWidth="1px" borderColor={sidebarBorder}>
+            <PoweredByTraction justify="flex-start" />
+          </Box>
         </Box>
+
+        <Flex direction="column" flex="1" minW={0}>
+          <Box as="main" flex="1" bg={mainBg} p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
+            <Outlet />
+          </Box>
+          <Box
+            as="footer"
+            display={{ base: 'block', md: 'none' }}
+            borderTopWidth="1px"
+            borderColor={mobileFooterBorder}
+            bg={mainBg}
+            py={4}
+            px={4}
+          >
+            <PoweredByTraction />
+          </Box>
+        </Flex>
       </Flex>
     </Flex>
   )
