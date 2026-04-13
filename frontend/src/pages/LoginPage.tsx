@@ -390,7 +390,7 @@ export function LoginPage() {
                 bgGradient={heroGradient}
                 bgClip="text"
               >
-                Publish conformity credentials for UNTP programs.
+                Digital Documents for Verifiable Conformity (DD4VC)
               </Heading>
               <Text
                 color={heroBodyMuted}
