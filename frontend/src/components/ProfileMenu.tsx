@@ -9,7 +9,8 @@ import {
   SkeletonCircle,
   Text,
 } from '@chakra-ui/react'
-import { MdLogout } from 'react-icons/md'
+import { Link as RouterLink } from 'react-router-dom'
+import { MdLogout, MdScience, MdSettings } from 'react-icons/md'
 
 type Props = {
   clientId: string | undefined
@@ -47,6 +48,13 @@ export function ProfileMenu({ clientId, loading, onSignOut }: Props) {
             <MenuDivider />
           </>
         ) : null}
+        <MenuItem as={RouterLink} to="/test-suite" icon={<MdScience />}>
+          Test suite
+        </MenuItem>
+        <MenuItem as={RouterLink} to="/settings" icon={<MdSettings />}>
+          Settings
+        </MenuItem>
+        <MenuDivider />
         <MenuItem icon={<MdLogout />} onClick={onSignOut}>
           Sign out
         </MenuItem>

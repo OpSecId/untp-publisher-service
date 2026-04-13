@@ -11,7 +11,7 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { MdBusiness, MdDashboard, MdLayers, MdScience, MdSettings } from 'react-icons/md'
+import { MdBusiness, MdDashboard, MdLayers } from 'react-icons/md'
 import { setAccessToken } from '../auth/storage'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
 import { PoweredByTraction } from '../components/PoweredByTraction'
@@ -22,8 +22,6 @@ const navItems = [
   { to: '/', label: 'Overview', icon: MdDashboard },
   { to: '/issuers', label: 'Issuers', icon: MdBusiness },
   { to: '/credential-templates', label: 'Templates', icon: MdLayers },
-  { to: '/test-suite', label: 'Test suite', icon: MdScience },
-  { to: '/settings', label: 'Settings', icon: MdSettings },
 ]
 
 export function AppShell() {
