@@ -57,10 +57,10 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
 
 
 def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Wallet JWT accepted when GET TRACTION_API_URL/status with same Bearer returns 200."""
+    """Wallet JWT accepted when GET TRACTION_API_URL/tenant/wallet with same Bearer returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
-        assert url == "https://traction.example/status"
+        assert url == "https://traction.example/tenant/wallet"
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
         return type("R", (), {"status_code": 200})()
 
@@ -94,16 +94,16 @@ def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch
     assert data["claims"]["expires"] == now + 3600
 
 
-def test_publisher_session_accepts_traction_wallet_when_status_fails_but_tenant_wallet_ok(
+def test_publisher_session_accepts_traction_wallet_when_tenant_wallet_fails_but_status_ok(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """BC-style tenant proxy: /status may not be 200; /tenant/wallet validates the wallet Bearer."""
+    """Fallback: /tenant/wallet non-200, then /status with same Bearer returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
-        if url == "https://traction.example/status":
-            return type("R", (), {"status_code": 404})()
         if url == "https://traction.example/tenant/wallet":
+            return type("R", (), {"status_code": 404})()
+        if url == "https://traction.example/status":
             return type("R", (), {"status_code": 200})()
         raise AssertionError(f"unexpected url {url!r}")
 
