@@ -3,9 +3,17 @@ import { createRoot } from 'react-dom/client'
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
+import { getAccessToken, setAccessToken } from './auth/storage'
 import { theme } from './theme.ts'
 import '@bcgov/bc-sans/css/BC_Sans.css'
 import './index.css'
+
+if (import.meta.env.DEV) {
+  const devToken = import.meta.env.VITE_DEV_PUBLISHER_TOKEN?.trim()
+  if (devToken && !getAccessToken()) {
+    setAccessToken(devToken)
+  }
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
