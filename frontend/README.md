@@ -10,7 +10,7 @@ Vite + React + TypeScript + Chakra UI. Sign-in: **Get started** reads the JWT fr
 
 Optional `.env` in this folder (copy from `.env.example`; repo root `.env` is for the backend):
 
-- `VITE_API_BASE_URL` — override API prefix (e.g. `https://publisher.example` in production).
+- `VITE_API_BASE_URL` — override API prefix (e.g. `https://publisher.example` in production). **Must be a browser-reachable HTTPS URL** when the SPA is served over HTTPS (not `http://` and not Railway `*.railway.internal` — those trigger mixed-content blocks). Omit it to use same-origin `/api` (then configure your edge/nginx to reverse-proxy `/api` to the API).
 - `VITE_TRACTION_URL` — optional tenant proxy URL for future browser-side Traction calls (CORS must allow your origin).
 - `VITE_DEV_PUBLISHER_TOKEN` — **dev only:** valid publisher JWT; on `npm run dev`, if session storage has no token yet, it is seeded so you can skip clipboard sign-in. **Never** set this when building a production image — Vite inlines `VITE_*` into the bundle.
 
