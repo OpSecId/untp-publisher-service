@@ -4,6 +4,7 @@ import {
   Badge,
   Box,
   Heading,
+  IconButton,
   SimpleGrid,
   Skeleton,
   Stack,
@@ -12,9 +13,12 @@ import {
   StatLabel,
   StatNumber,
   Text,
+  Tooltip,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { MdRefresh } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import { ApiError, apiFetch, apiJson } from '../api/client'
 import { setAccessToken } from '../auth/storage'
@@ -30,46 +34,64 @@ function formatExpiry(epoch: number): string {
 
 export function OverviewPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [session, setSession] = useState<PublisherSession | null>(null)
   const [serverOk, setServerOk] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const cardBg = useColorModeValue('white', 'gray.700')
   const cardBorder = useColorModeValue('gray.100', 'gray.600')
   const mutedText = useColorModeValue('gray.600', 'gray.400')
   const sectionTitle = useColorModeValue('gray.700', 'gray.200')
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
+  const loadOverview = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const silent = Boolean(opts?.silent)
+      if (silent) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
       setError(null)
       try {
         const [sess, statusRes] = await Promise.all([
           apiJson<PublisherSession>('/publisher/session'),
           apiFetch('/server/status'),
         ])
-        if (!cancelled) {
-          setSession(sess)
-          setServerOk(statusRes.ok)
+        setSession(sess)
+        setServerOk(statusRes.ok)
+        if (silent) {
+          toast({ title: 'Session refreshed', status: 'success', duration: 2000 })
         }
       } catch (e) {
-        if (!cancelled) {
-          if (e instanceof ApiError && e.status === 403) {
-            setAccessToken(null)
-            navigate('/login', { replace: true })
-            return
-          }
-          setError(e instanceof Error ? e.message : 'Failed to load session')
+        if (e instanceof ApiError && e.status === 403) {
+          setAccessToken(null)
+          navigate('/login', { replace: true })
+          return
+        }
+        setError(e instanceof Error ? e.message : 'Failed to load session')
+        if (silent) {
+          toast({
+            title: 'Refresh failed',
+            description: e instanceof Error ? e.message : 'Request failed',
+            status: 'error',
+          })
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (silent) {
+          setRefreshing(false)
+        } else {
+          setLoading(false)
+        }
       }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [navigate])
+    },
+    [navigate, toast],
+  )
+
+  useEffect(() => {
+    void loadOverview()
+  }, [loadOverview])
 
   if (loading) {
     return (
@@ -131,19 +153,39 @@ export function OverviewPage() {
           </StatNumber>
           <StatHelpText>GET /server/status</StatHelpText>
         </Stat>
-        <Stat
-          px={6}
-          py={5}
-          bg={cardBg}
-          shadow="sm"
-          rounded="xl"
-          borderWidth="1px"
-          borderColor={cardBorder}
-        >
-          <StatLabel>Token expiry</StatLabel>
-          <StatNumber fontSize="md">{claims ? formatExpiry(claims.expires) : '—'}</StatNumber>
-          <StatHelpText>Refresh by signing in again with credentials</StatHelpText>
-        </Stat>
+        <Box position="relative">
+          <Tooltip label="Reload session and token expiry from your current access token" placement="top" hasArrow>
+            <IconButton
+              aria-label="Refresh session"
+              icon={<MdRefresh size={20} />}
+              variant="ghost"
+              size="sm"
+              position="absolute"
+              top={3}
+              right={3}
+              zIndex={1}
+              onClick={() => void loadOverview({ silent: true })}
+              isLoading={refreshing}
+              isRound
+            />
+          </Tooltip>
+          <Stat
+            px={6}
+            py={5}
+            pr={14}
+            bg={cardBg}
+            shadow="sm"
+            rounded="xl"
+            borderWidth="1px"
+            borderColor={cardBorder}
+          >
+            <StatLabel>Token expiry</StatLabel>
+            <StatNumber fontSize="md">{claims ? formatExpiry(claims.expires) : '—'}</StatNumber>
+            <StatHelpText>
+              Re-fetch with the button if you renewed your token elsewhere. For a new token, sign in again.
+            </StatHelpText>
+          </Stat>
+        </Box>
       </SimpleGrid>
 
       <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8}>
