@@ -39,6 +39,7 @@ def build_app(cfg: Settings) -> FastAPI:
         from app.routers import (
             authentication,
             credentials,
+            publisher_portal,
             related_resources,
             registrations,
         )
@@ -47,6 +48,7 @@ def build_app(cfg: Settings) -> FastAPI:
         api_router.include_router(registrations.router)
         api_router.include_router(credentials.router)
         api_router.include_router(related_resources.router)
+        api_router.include_router(publisher_portal.router)
 
     app.include_router(api_router)
     return app
