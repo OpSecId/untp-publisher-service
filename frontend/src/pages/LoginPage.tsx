@@ -23,6 +23,7 @@ import {
 import { apiBaseUrl } from '../api/baseUrl'
 import { getAccessToken, setAccessToken } from '../auth/storage'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
+import { PoweredByTraction } from '../components/PoweredByTraction'
 
 type Phase = 'landing' | 'error' | 'manual'
 
@@ -130,6 +131,7 @@ export function LoginPage() {
     '0 20px 50px rgba(1, 51, 102, 0.12)',
     '0 20px 50px rgba(0,0,0,0.25)',
   )
+  const loginFooterBorder = useColorModeValue('blackAlpha.200', 'whiteAlpha.150')
 
   useEffect(() => {
     if (getAccessToken()) navigate('/', { replace: true })
@@ -176,45 +178,50 @@ export function LoginPage() {
 
   if (phase === 'error') {
     return (
-      <Box minH="100vh" bg={errorBg} color={errorFg} px={4} py={16} position="relative">
-        <Flex position="absolute" top={4} right={4} justify="flex-end">
+      <Flex minH="100vh" direction="column" bg={errorBg} color={errorFg} position="relative">
+        <Flex position="absolute" top={4} right={4} justify="flex-end" px={4} w="full">
           <ColorModeToggle variant={toggleVariant} />
         </Flex>
-        <Box maxW="lg" mx="auto" textAlign="center">
-          <Heading size="lg" fontFamily="heading" mb={10}>
-            Something went wrong
-          </Heading>
-          <Text
-            as="pre"
-            fontFamily="mono"
-            fontSize="xs"
-            color={errorPreColor}
-            whiteSpace="pre"
-            mb={10}
-            userSelect="none"
-          >
-            {TEAPOT_ASCII}
-          </Text>
-          <Text fontSize="sm" color={errorItalicColor} mb={10} fontStyle="italic">
-            418 — short and stout
-          </Text>
-          <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
-            <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
-              Try again
-            </Button>
-            <Button variant="outline" colorScheme={errorOutlineScheme} onClick={() => setPhase('manual')}>
-              Enter token manually
-            </Button>
-          </Stack>
+        <Flex flex="1" align="center" justify="center" px={4} py={20}>
+          <Box maxW="lg" mx="auto" textAlign="center">
+            <Heading size="lg" fontFamily="heading" mb={10}>
+              Something went wrong
+            </Heading>
+            <Text
+              as="pre"
+              fontFamily="mono"
+              fontSize="xs"
+              color={errorPreColor}
+              whiteSpace="pre"
+              mb={10}
+              userSelect="none"
+            >
+              {TEAPOT_ASCII}
+            </Text>
+            <Text fontSize="sm" color={errorItalicColor} mb={10} fontStyle="italic">
+              418 — short and stout
+            </Text>
+            <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
+              <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
+                Try again
+              </Button>
+              <Button variant="outline" colorScheme={errorOutlineScheme} onClick={() => setPhase('manual')}>
+                Enter token manually
+              </Button>
+            </Stack>
+          </Box>
+        </Flex>
+        <Box borderTopWidth="1px" borderColor={loginFooterBorder} py={5} px={4}>
+          <PoweredByTraction />
         </Box>
-      </Box>
+      </Flex>
     )
   }
 
   if (phase === 'manual') {
     return (
-      <Box minH="100vh" position="relative" overflow="hidden" bg={manualPageBg}>
-        <Flex position="absolute" top={4} right={4} zIndex={2} justify="flex-end">
+      <Flex minH="100vh" direction="column" position="relative" overflow="hidden" bg={manualPageBg}>
+        <Flex position="absolute" top={4} right={4} zIndex={2} justify="flex-end" px={4} w="full">
           <ColorModeToggle variant={toggleVariant} />
         </Flex>
         <Box
@@ -241,8 +248,8 @@ export function LoginPage() {
           filter="blur(90px)"
           pointerEvents="none"
         />
-        <Box position="relative" zIndex={1} py={{ base: 10, md: 16 }} px={4}>
-          <Box maxW="md" mx="auto">
+        <Flex flex="1" direction="column" position="relative" zIndex={1} py={{ base: 10, md: 16 }} px={4}>
+          <Box flex="1" maxW="md" mx="auto" w="full">
             <Button variant="link" color={manualBackColor} mb={8} onClick={() => setPhase('landing')}>
               Back
             </Button>
@@ -280,8 +287,11 @@ export function LoginPage() {
               </Stack>
             </Box>
           </Box>
-        </Box>
-      </Box>
+          <Box borderTopWidth="1px" borderColor={loginFooterBorder} mt="auto" py={5}>
+            <PoweredByTraction />
+          </Box>
+        </Flex>
+      </Flex>
     )
   }
 
@@ -645,6 +655,17 @@ export function LoginPage() {
             </SimpleGrid>
           </Box>
         </Container>
+        <Box
+          borderTopWidth="1px"
+          borderColor={loginFooterBorder}
+          mt={{ base: 12, md: 16 }}
+          py={8}
+          px={{ base: 5, md: 10 }}
+          maxW="7xl"
+          mx="auto"
+        >
+          <PoweredByTraction />
+        </Box>
       </Box>
     </Box>
   )

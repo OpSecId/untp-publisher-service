@@ -14,6 +14,7 @@ import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-rout
 import { MdDashboard, MdLogout, MdSettings } from 'react-icons/md'
 import { setAccessToken } from '../auth/storage'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
+import { PoweredByTraction } from '../components/PoweredByTraction'
 
 const navItems = [
   { to: '/', label: 'Overview', icon: MdDashboard },
@@ -40,6 +41,7 @@ export function AppShell() {
   const signOutHoverFg = useColorModeValue('gray.900', 'white')
   const signOutHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const mobileSignOutScheme = useColorModeValue('gray', 'whiteAlpha')
+  const mobileFooterBorder = useColorModeValue('gray.200', 'gray.700')
 
   const logout = () => {
     setAccessToken(null)
@@ -56,7 +58,9 @@ export function AppShell() {
         color={sidebarColor}
         px={6}
         py={8}
-        display={{ base: 'none', md: 'block' }}
+        display={{ base: 'none', md: 'flex' }}
+        flexDirection="column"
+        minH="100vh"
       >
         <Flex align="center" justify="space-between" gap={3} mb={10}>
           <Heading size="md" fontWeight="700" letterSpacing="-0.02em" color={brandColor}>
@@ -93,7 +97,9 @@ export function AppShell() {
             )
           })}
         </VStack>
-        <Box mt={12} pt={8} borderTopWidth="1px" borderColor={sidebarBorder}>
+        <Box flex="1" minH={4} aria-hidden />
+        <Box pt={8} mt={12} borderTopWidth="1px" borderColor={sidebarBorder}>
+          <PoweredByTraction justify="flex-start" mb={5} />
           <Button
             variant="ghost"
             colorScheme={signOutScheme}
@@ -140,6 +146,17 @@ export function AppShell() {
         </Box>
         <Box as="main" flex="1" bg={mainBg} p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
           <Outlet />
+        </Box>
+        <Box
+          as="footer"
+          display={{ base: 'block', md: 'none' }}
+          borderTopWidth="1px"
+          borderColor={mobileFooterBorder}
+          bg={mainBg}
+          py={4}
+          px={4}
+        >
+          <PoweredByTraction />
         </Box>
       </Flex>
     </Flex>
