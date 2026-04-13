@@ -9,11 +9,18 @@ from app.security import (
     TRACTION_WALLET_INTROSPECTION_PATHS,
     decode_portal_token,
     portal_token_rejected_http_detail,
+    traction_wallet_probe_report,
     verify_portal_jwt_token,
 )
 from config import settings
 
 router = APIRouter(prefix="/publisher")
+
+
+@router.get("/traction-wallet-probes", tags=["Client"])
+async def publisher_traction_wallet_probes(token: str = Depends(verify_portal_jwt_token)):
+    """GET each wallet-introspection URL with the session Bearer; JSON previews for the SPA Settings page."""
+    return JSONResponse(status_code=200, content=traction_wallet_probe_report(token))
 
 
 @router.get("/session", tags=["Client"])

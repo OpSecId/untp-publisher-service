@@ -13,3 +13,19 @@ export type PublisherSession = {
     issuer_registry_url: string
   }
 }
+
+/** GET /publisher/traction-wallet-probes */
+export type TractionWalletProbeRow = {
+  path: string
+  url: string
+  status_code: number | null
+  error: string | null
+  content_type: string | null
+  body: unknown
+}
+
+export type TractionWalletProbeResponse = {
+  traction_api_url: string
+  probes: TractionWalletProbeRow[]
+  detail?: string
+}

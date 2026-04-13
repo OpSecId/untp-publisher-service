@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 import time
+from typing import Any
 
 import httpx
 import jwt
@@ -48,6 +50,141 @@ TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = (
     "/tenant/server/status/config",
     "/status",
 )
+
+_SMALL_JSON_MAX_CHARS = 10_000
+_NON200_BODY_MAX = 4_000
+_TEXT_NONJSON_MAX = 4_000
+
+
+def _trim_str(s: str, max_len: int) -> str:
+    if len(s) <= max_len:
+        return s
+    return s[: max(0, max_len - 24)] + "\n…[truncated]"
+
+
+def _json_shape_truncated(obj: Any, max_depth: int, max_keys: int, depth: int = 0) -> Any:
+    if depth >= max_depth:
+        return "…"
+    if isinstance(obj, dict):
+        out: dict[str, Any] = {}
+        for i, (k, v) in enumerate(obj.items()):
+            if i >= max_keys:
+                out["_truncated_key_count"] = len(obj) - max_keys
+                break
+            out[str(k)] = _json_shape_truncated(v, max_depth, max_keys, depth + 1)
+        return out
+    if isinstance(obj, list):
+        if not obj:
+            return []
+        if len(obj) <= 6:
+            return [_json_shape_truncated(x, max_depth, max_keys, depth + 1) for x in obj]
+        return [
+            _json_shape_truncated(obj[0], max_depth, max_keys, depth + 1),
+            {"_omitted_list_items": len(obj) - 1},
+        ]
+    return obj
+
+
+def _summarize_acapy_config_response(data: Any) -> dict[str, Any]:
+    """Strip huge fields (e.g. genesis) from /tenant/server/status/config style payloads."""
+    if not isinstance(data, dict):
+        return {
+            "_note": "Unexpected JSON root; truncated string form.",
+            "preview": _trim_str(json.dumps(data, default=str), 6_000),
+        }
+    cfg = data.get("config")
+    if not isinstance(cfg, dict):
+        return {
+            "_note": "No top-level `config` object.",
+            "top_level_keys": list(data.keys())[:40],
+        }
+    ledgers = cfg.get("ledger.ledger_config_list")
+    ledger_brief: list[Any] | None = None
+    if isinstance(ledgers, list):
+        ledger_brief = []
+        for item in ledgers[:12]:
+            if isinstance(item, dict):
+                ledger_brief.append(
+                    {k: item.get(k) for k in ("id", "pool_name", "is_write", "is_production", "read_only") if k in item}
+                )
+        if len(ledgers) > 12:
+            ledger_brief.append({"_more_ledger_entries": len(ledgers) - 12})
+    pc = cfg.get("plugin_config")
+    plugin_keys = sorted(pc.keys())[:50] if isinstance(pc, dict) else None
+    ext = cfg.get("external_plugins")
+    ext_plugins = ext[:40] if isinstance(ext, list) else ext
+    return {
+        "_note": "Large ACA-Py `config` summarized (genesis / full plugin_config omitted).",
+        "version": cfg.get("version"),
+        "default_endpoint": cfg.get("default_endpoint"),
+        "tails_server_base_url": cfg.get("tails_server_base_url"),
+        "external_plugins": ext_plugins,
+        "plugin_config_keys": plugin_keys,
+        "ledger_config_brief": ledger_brief,
+    }
+
+
+def _preview_probe_body(path: str, status: int, raw_text: str) -> Any:
+    if status != 200:
+        t = (raw_text or "").strip()
+        return _trim_str(t, _NON200_BODY_MAX) if t else None
+    if not (raw_text or "").strip():
+        return None
+    try:
+        data = json.loads(raw_text)
+    except json.JSONDecodeError:
+        return _trim_str(raw_text, _TEXT_NONJSON_MAX)
+    compact = json.dumps(data, default=str)
+    if path == "/tenant/server/status/config":
+        return _summarize_acapy_config_response(data)
+    if len(compact) > _SMALL_JSON_MAX_CHARS:
+        return _json_shape_truncated(data, max_depth=4, max_keys=24)
+    return data
+
+
+def traction_wallet_probe_report(token: str) -> dict[str, Any]:
+    """
+    GET each known wallet-introspection URL with the same Bearer; return status and a small JSON-safe preview.
+    Used by the portal Settings UI (not used for auth decisions).
+    """
+    base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
+    if not base:
+        return {
+            "traction_api_url": "",
+            "probes": [],
+            "detail": "TRACTION_API_URL is not set on this API.",
+        }
+    headers = {"Authorization": f"Bearer {token}"}
+    probes: list[dict[str, Any]] = []
+    for path in TRACTION_WALLET_INTROSPECTION_PATHS:
+        url = f"{base}{path}"
+        try:
+            r = httpx.get(url, headers=headers, timeout=20.0)
+        except httpx.RequestError as e:
+            probes.append(
+                {
+                    "path": path,
+                    "url": url,
+                    "status_code": None,
+                    "error": str(e),
+                    "content_type": None,
+                    "body": None,
+                }
+            )
+            continue
+        ct = (r.headers.get("content-type") or "").split(";")[0].strip() or None
+        preview = _preview_probe_body(path, r.status_code, r.text or "")
+        probes.append(
+            {
+                "path": path,
+                "url": url,
+                "status_code": r.status_code,
+                "error": None,
+                "content_type": ct,
+                "body": preview,
+            }
+        )
+    return {"traction_api_url": base, "probes": probes}
 
 
 def _decode_traction_wallet_via_introspection(token: str) -> dict | None:

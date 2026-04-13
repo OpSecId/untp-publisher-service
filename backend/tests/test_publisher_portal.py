@@ -233,3 +233,81 @@ def test_publisher_session_accepts_traction_wallet_when_tenant_paths_fail_but_st
     r = client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
     assert r.json()["claims"]["client_id"] == wid
+
+
+def test_publisher_traction_wallet_probes_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.get("/publisher/traction-wallet-probes")
+    assert r.status_code == 403
+
+
+def test_publisher_traction_wallet_probes_returns_per_path(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_get(url: str, headers: Any = None, timeout: Any = None) -> Any:
+        assert headers and str(headers.get("Authorization", "")).startswith("Bearer ")
+
+        class Resp:
+            status_code = 200
+            text = "{}"
+            headers = {"content-type": "application/json"}
+
+        r = Resp()
+        if url.endswith("/tenant"):
+            r.text = '{"tenant_mode":"multi"}'
+        elif url.endswith("/tenant/config"):
+            r.text = '{"label":"cfg"}'
+        elif url.endswith("/tenant/wallet"):
+            r.text = '{"settings":{}}'
+        elif url.endswith("/tenant/server/status/config"):
+            r.text = '{"config":{"version":"9.9.9","external_plugins":["webvh"]}}'
+        elif url.endswith("/status"):
+            r.status_code = 403
+            r.text = "<html>nginx forbidden</html>"
+        return r
+
+    monkeypatch.setattr("app.security.httpx.get", fake_get)
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/traction-wallet-probes", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    data: dict[str, Any] = r.json()
+    assert data["traction_api_url"] == "https://traction.example"
+    assert len(data["probes"]) == 5
+    assert data["probes"][0]["path"] == "/tenant"
+    assert data["probes"][0]["status_code"] == 200
+    assert data["probes"][0]["body"] == {"tenant_mode": "multi"}
+    assert data["probes"][3]["path"] == "/tenant/server/status/config"
+    assert data["probes"][3]["body"]["version"] == "9.9.9"
+    assert data["probes"][4]["status_code"] == 403
+    assert data["probes"][4]["body"] and "html" in str(data["probes"][4]["body"]).lower()
+
+
+def test_publisher_traction_wallet_probes_empty_when_no_traction_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    s = Settings(
+        TEST_SUITE=False,
+        JWT_SECRET="portal-test-jwt-secret",
+        JWT_ALGORITHM="HS256",
+        PROJECT_TITLE="Test Publisher",
+        PROJECT_VERSION="v-test",
+        DOMAIN="https://pub.example",
+        TRACTION_TENANT_ID="tenant-1",
+        TRACTION_API_URL="",
+        REGISTRY_URL="https://registry.example",
+        DID_WEB_SERVER_URL="https://did.example",
+        ISSUER_REGISTRY_URL="https://registry.example",
+    )
+    monkeypatch.setattr("app.security.settings", s, raising=False)
+    monkeypatch.setattr("app.routers.publisher_portal.settings", s, raising=False)
+    app = build_app(s)
+    client = TestClient(app)
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = client.get("/publisher/traction-wallet-probes", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["probes"] == []
+    assert "TRACTION_API_URL" in body.get("detail", "")

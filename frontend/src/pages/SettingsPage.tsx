@@ -18,6 +18,7 @@ import { useState } from 'react'
 import { apiJson } from '../api/client'
 import { usePublisherSession } from '../hooks/usePublisherSession'
 import { apiBaseUrl } from '../api/baseUrl'
+import { WalletTractionProbePanel } from '../components/WalletTractionProbePanel'
 import type { PublisherSession } from '../api/types'
 
 export function SettingsPage() {
@@ -138,6 +139,7 @@ export function SettingsPage() {
             paths={env?.traction_wallet_introspection_paths}
             mutedColor={muted}
           />
+          <WalletTractionProbePanel tractionApiUrl={env?.traction_api_url} />
           <Row label="Registry URL" value={env?.registry_url} />
           <Row label="DID web(vh) server" value={env?.did_web_server_url} />
           <Row label="Issuer registry" value={env?.issuer_registry_url} />
