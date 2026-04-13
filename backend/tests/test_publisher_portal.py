@@ -4,6 +4,7 @@ from typing import Any
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+from pymongo.errors import PyMongoError
 
 from app import build_app
 from config import Settings
@@ -259,3 +260,54 @@ def test_publisher_traction_wallet_probes_empty_when_no_traction_url(monkeypatch
     body = r.json()
     assert body["probes"] == []
     assert "TRACTION_API_URL" in body.get("detail", "")
+
+
+def test_publisher_issuers_requires_auth(portal_client: TestClient) -> None:
+    r = portal_client.get("/publisher/issuers")
+    assert r.status_code == 403
+
+
+def test_publisher_issuers_returns_redacted_rows(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            assert collection == "IssuerRecord"
+            return iter(
+                [
+                    {"id": "did:web:issuer.example", "name": "Demo Issuer", "authorized_key": "z6MkSECRET"},
+                    {"id": "did:web:other.example", "name": "Other", "secret_hash": "h"},
+                ]
+            )
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", FakeMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/issuers", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["issuers"] == [
+        {"id": "did:web:issuer.example", "name": "Demo Issuer"},
+        {"id": "did:web:other.example", "name": "Other"},
+    ]
+    raw = str(r.json())
+    assert "z6MkSECRET" not in raw
+    assert "secret_hash" not in raw
+
+
+def test_publisher_issuers_503_on_mongo_error(portal_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    class BoomMongo:
+        def find(self, collection: str, query: dict[str, Any]) -> Any:
+            raise PyMongoError("unavailable")
+
+    monkeypatch.setattr("app.routers.publisher_portal.MongoClient", BoomMongo)
+
+    token = jwt.encode(
+        {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
+        "portal-test-jwt-secret",
+        algorithm="HS256",
+    )
+    r = portal_client.get("/publisher/issuers", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 503

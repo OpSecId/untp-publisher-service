@@ -30,6 +30,16 @@ export type TractionWalletProbeResponse = {
   detail?: string
 }
 
+/** GET /publisher/issuers */
+export type PublisherIssuerRow = {
+  id: string
+  name: string
+}
+
+export type PublisherIssuersResponse = {
+  issuers: PublisherIssuerRow[]
+}
+
 /** POST /test-suite/validate */
 export type TestSuiteValidateResponse = {
   success: boolean

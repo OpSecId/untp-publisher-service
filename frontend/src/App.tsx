@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './layout/AppShell'
 import { LoginPage } from './pages/LoginPage'
+import { IssuersPage } from './pages/IssuersPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TestSuitePage } from './pages/TestSuitePage'
@@ -18,6 +19,7 @@ export default function App() {
         }
       >
         <Route index element={<OverviewPage />} />
+        <Route path="issuers" element={<IssuersPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="test-suite" element={<TestSuitePage />} />
       </Route>
