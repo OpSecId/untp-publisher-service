@@ -1,6 +1,6 @@
 # UNTP Publisher (SPA)
 
-Vite + React + TypeScript + Chakra UI. Sign-in uses a pasted JWT validated with **`GET /publisher/session`** before it is stored; then **Overview** and **Settings** load the same session.
+Vite + React + TypeScript + Chakra UI. Sign-in: **Get started** reads the JWT from the **clipboard** and validates it with **`GET /publisher/session`** before storing a session (optional manual paste from the error screen). Then **Overview** and **Settings** load the same session.
 
 ## Development
 

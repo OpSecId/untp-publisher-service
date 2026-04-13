@@ -17,7 +17,7 @@ import { MdOutlineHub, MdOutlineSecurity, MdOutlineSpeed } from 'react-icons/md'
 import { apiBaseUrl } from '../api/baseUrl'
 import { getAccessToken, setAccessToken } from '../auth/storage'
 
-type Phase = 'landing' | 'token' | 'error'
+type Phase = 'landing' | 'error' | 'manual'
 
 /** RFC 2324–adjacent whimsy; shown only on failed login (no server details). */
 const TEAPOT_ASCII = `
@@ -52,8 +52,8 @@ const features = [
   },
   {
     icon: MdOutlineSecurity,
-    title: 'Token-only access',
-    body: 'Bring your access token; the console validates it with the API before anything is stored locally.',
+    title: 'Clipboard sign-in',
+    body: 'Copy your access token, then use Get started — the console reads the clipboard and validates with the API before storing a session.',
   },
 ] as const
 
@@ -68,14 +68,17 @@ export function LoginPage() {
     if (getAccessToken()) navigate('/', { replace: true })
   }, [navigate])
 
-  const submitToken = async () => {
-    const raw = jwt.trim()
-    if (!raw) return
+  const signInWithToken = async (raw: string) => {
+    const token = raw.trim()
+    if (!token) {
+      setPhase('error')
+      return
+    }
     setLoading(true)
     try {
-      const ok = await validateSessionJwt(raw)
+      const ok = await validateSessionJwt(token)
       if (ok) {
-        setAccessToken(raw)
+        setAccessToken(token)
         navigate('/', { replace: true })
         return
       }
@@ -87,13 +90,17 @@ export function LoginPage() {
     }
   }
 
-  const pasteFromClipboard = async () => {
+  const signInFromClipboard = async () => {
     try {
       const text = await navigator.clipboard.readText()
-      setJwt(text.trim())
+      await signInWithToken(text)
     } catch {
-      /* clipboard unavailable — no error page */
+      setPhase('error')
     }
+  }
+
+  const submitManualToken = async () => {
+    await signInWithToken(jwt)
   }
 
   const scrollToFeatures = () => {
@@ -121,20 +128,20 @@ export function LoginPage() {
           <Text fontSize="sm" color="gray.500" mb={10} fontStyle="italic">
             418 — short and stout
           </Text>
-          <Button
-            colorScheme="blue"
-            onClick={() => {
-              setPhase('token')
-            }}
-          >
-            Try again
-          </Button>
+          <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
+            <Button colorScheme="blue" isLoading={loading} onClick={() => void signInFromClipboard()}>
+              Try again
+            </Button>
+            <Button variant="outline" colorScheme="whiteAlpha" onClick={() => setPhase('manual')}>
+              Enter token manually
+            </Button>
+          </Stack>
         </Box>
       </Box>
     )
   }
 
-  if (phase === 'token') {
+  if (phase === 'manual') {
     return (
       <Box minH="100vh" position="relative" overflow="hidden" bg="#0a0e27">
         <Box
@@ -189,19 +196,14 @@ export function LoginPage() {
                   fontSize="sm"
                   autoComplete="off"
                 />
-                <Stack direction={{ base: 'column', sm: 'row' }} spacing={3}>
-                  <Button variant="outline" onClick={() => void pasteFromClipboard()}>
-                    Paste from clipboard
-                  </Button>
-                  <Button
-                    colorScheme="blue"
-                    flex={1}
-                    onClick={() => void submitToken()}
-                    isLoading={loading}
-                  >
-                    Sign in
-                  </Button>
-                </Stack>
+                <Button
+                  colorScheme="blue"
+                  w="full"
+                  onClick={() => void submitManualToken()}
+                  isLoading={loading}
+                >
+                  Sign in
+                </Button>
               </Stack>
             </Box>
           </Box>
@@ -346,6 +348,8 @@ export function LoginPage() {
                   rounded="xl"
                   bgGradient="linear(to-r, blue.400, purple.500)"
                   color="white"
+                  isLoading={loading}
+                  loadingText="Signing in"
                   _hover={{
                     opacity: 0.95,
                     transform: 'translateY(-1px)',
@@ -353,7 +357,7 @@ export function LoginPage() {
                   }}
                   _active={{ transform: 'translateY(0)' }}
                   transition="all 0.2s ease"
-                  onClick={() => setPhase('token')}
+                  onClick={() => void signInFromClipboard()}
                 >
                   Get started
                 </Button>
@@ -372,6 +376,10 @@ export function LoginPage() {
                   Explore features
                 </Button>
               </Stack>
+              <Text fontSize="sm" color="whiteAlpha.500" maxW="md" mx={{ base: 'auto', lg: 0 }}>
+                Copy your access token to the clipboard first — Get started reads it automatically
+                (HTTPS or localhost only).
+              </Text>
             </Stack>
 
             {/* Glass preview card */}
@@ -407,7 +415,7 @@ export function LoginPage() {
                   {[
                     { label: 'Overview', sub: 'Health, claims, deployment summary' },
                     { label: 'Settings', sub: 'Registry URL, Traction context, admin tools' },
-                    { label: 'Secure entry', sub: 'Token validated before dashboard load' },
+                    { label: 'Secure entry', sub: 'Clipboard token validated before dashboard load' },
                   ].map((row) => (
                     <Flex
                       key={row.label}
@@ -504,7 +512,6 @@ export function LoginPage() {
               ))}
             </SimpleGrid>
           </Box>
-
         </Container>
       </Box>
     </Box>
