@@ -2,6 +2,7 @@ import {
   Badge,
   Box,
   Button,
+  Code,
   Container,
   Flex,
   Heading,
@@ -27,14 +28,50 @@ import { PoweredByTraction } from '../components/PoweredByTraction'
 
 type Phase = 'landing' | 'error' | 'manual'
 
-async function validateSessionJwt(token: string): Promise<boolean> {
+function publisherSessionUrl(): string {
   const base = apiBaseUrl().replace(/\/$/, '')
-  const url = `${base}/publisher/session`
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token.trim()}` },
-  })
-  return res.ok
+  return `${base}/publisher/session`
 }
+
+type SessionCheckResult =
+  | { ok: true }
+  | { ok: false; kind: 'http'; status: number; detail?: string; url: string }
+  | { ok: false; kind: 'network'; message: string; url: string }
+
+async function checkPublisherSession(token: string): Promise<SessionCheckResult> {
+  const url = publisherSessionUrl()
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token.trim()}` },
+    })
+    if (res.ok) return { ok: true }
+    let detail: string | undefined
+    try {
+      const body: unknown = await res.json()
+      if (body && typeof body === 'object' && 'detail' in body) {
+        const d = (body as { detail: unknown }).detail
+        if (typeof d === 'string') detail = d
+        else if (Array.isArray(d))
+          detail = d
+            .map((x) => (x && typeof x === 'object' && 'msg' in x ? String((x as { msg: unknown }).msg) : ''))
+            .filter(Boolean)
+            .join('; ')
+      }
+    } catch {
+      /* ignore non-JSON */
+    }
+    return { ok: false, kind: 'http', status: res.status, detail, url }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Network error'
+    return { ok: false, kind: 'network', message, url }
+  }
+}
+
+type SignInFailure =
+  | { reason: 'empty' }
+  | { reason: 'clipboard' }
+  | { reason: 'network'; message: string; url: string }
+  | { reason: 'rejected'; status: number; detail?: string; url: string }
 
 const features = [
   {
@@ -60,6 +97,7 @@ export function LoginPage() {
   const [phase, setPhase] = useState<Phase>('landing')
   const [jwt, setJwt] = useState('')
   const [loading, setLoading] = useState(false)
+  const [signInFailure, setSignInFailure] = useState<SignInFailure | null>(null)
 
   const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
   const errorBg = useColorModeValue('gray.50', 'gray.900')
@@ -125,19 +163,32 @@ export function LoginPage() {
   const signInWithToken = async (raw: string) => {
     const token = raw.trim()
     if (!token) {
+      setSignInFailure({ reason: 'empty' })
       setPhase('error')
       return
     }
     setLoading(true)
     try {
-      const ok = await validateSessionJwt(token)
-      if (ok) {
+      const result = await checkPublisherSession(token)
+      if (result.ok) {
         setAccessToken(token)
         navigate('/', { replace: true })
         return
       }
+      if (result.kind === 'network') {
+        setSignInFailure({ reason: 'network', message: result.message, url: result.url })
+      } else {
+        setSignInFailure({
+          reason: 'rejected',
+          status: result.status,
+          detail: result.detail,
+          url: result.url,
+        })
+      }
       setPhase('error')
-    } catch {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Unexpected error'
+      setSignInFailure({ reason: 'network', message, url: publisherSessionUrl() })
       setPhase('error')
     } finally {
       setLoading(false)
@@ -149,6 +200,7 @@ export function LoginPage() {
       const text = await navigator.clipboard.readText()
       await signInWithToken(text)
     } catch {
+      setSignInFailure({ reason: 'clipboard' })
       setPhase('error')
     }
   }
@@ -172,15 +224,78 @@ export function LoginPage() {
             <Heading size="lg" fontFamily="heading" mb={4}>
               We couldn&apos;t sign you in
             </Heading>
-            <Text fontSize="md" color={errorHelpColor} mb={10} maxW="md" mx="auto" lineHeight="tall">
-              Check that you have a valid access token, the publisher API is running and reachable, and—if you used
-              Get started—that this page is on HTTPS or localhost so the browser can read the clipboard.
-            </Text>
+            <Stack spacing={4} fontSize="md" color={errorHelpColor} mb={10} maxW="lg" mx="auto" textAlign="left">
+              {signInFailure?.reason === 'clipboard' && (
+                <Text lineHeight="tall">
+                  The browser could not read the clipboard. Use <strong>Enter token manually</strong>, or open this
+                  app on <strong>HTTPS</strong> or <strong>localhost</strong> and grant clipboard permission when
+                  prompted.
+                </Text>
+              )}
+              {signInFailure?.reason === 'empty' && (
+                <Text lineHeight="tall">
+                  No token was found (clipboard empty or only whitespace). Copy a JWT from your issuer or tenant wallet,
+                  then try again or paste it manually.
+                </Text>
+              )}
+              {signInFailure?.reason === 'network' && (
+                <>
+                  <Text lineHeight="tall">
+                    The browser could not reach the publisher API (network, DNS, TLS, or CORS). Confirm the API is up
+                    and that this page is allowed to call it.
+                  </Text>
+                  <Text fontSize="sm" fontFamily="mono" wordBreak="break-all" color={errorFg}>
+                    {signInFailure.message}
+                  </Text>
+                </>
+              )}
+              {signInFailure?.reason === 'rejected' && (
+                <>
+                  <Text lineHeight="tall">
+                    The API responded with HTTP <strong>{signInFailure.status}</strong>
+                    {signInFailure.detail ? (
+                      <>
+                        : {signInFailure.detail}
+                      </>
+                    ) : (
+                      <>.</>
+                    )}{' '}
+                    For a publisher <Code fontSize="sm">POST /auth/token</Code> JWT, the secret must match this
+                    deployment. For a Traction wallet JWT, the backend must reach{' '}
+                    <Code fontSize="sm">TRACTION_API_URL</Code> and Traction must accept the same token on{' '}
+                    <Code fontSize="sm">GET /status</Code>.
+                  </Text>
+                </>
+              )}
+              {!signInFailure && (
+                <Text lineHeight="tall" textAlign="center">
+                  Check that you have a valid access token, the publisher API is running and reachable, and—if you used
+                  Get started—that this page is on HTTPS or localhost so the browser can read the clipboard.
+                </Text>
+              )}
+              <Text fontSize="sm" fontFamily="mono" wordBreak="break-all" color={errorHelpColor}>
+                Session check: {publisherSessionUrl()}
+              </Text>
+            </Stack>
             <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
-              <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
+              <Button
+                colorScheme="brand"
+                isLoading={loading}
+                onClick={() => {
+                  setSignInFailure(null)
+                  void signInFromClipboard()
+                }}
+              >
                 Try again
               </Button>
-              <Button variant="outline" colorScheme={errorOutlineScheme} onClick={() => setPhase('manual')}>
+              <Button
+                variant="outline"
+                colorScheme={errorOutlineScheme}
+                onClick={() => {
+                  setSignInFailure(null)
+                  setPhase('manual')
+                }}
+              >
                 Enter token manually
               </Button>
             </Stack>
@@ -225,7 +340,15 @@ export function LoginPage() {
         />
         <Flex flex="1" direction="column" position="relative" zIndex={1} py={{ base: 10, md: 16 }} px={4}>
           <Box flex="1" maxW="md" mx="auto" w="full">
-            <Button variant="link" color={manualBackColor} mb={8} onClick={() => setPhase('landing')}>
+            <Button
+              variant="link"
+              color={manualBackColor}
+              mb={8}
+              onClick={() => {
+                setSignInFailure(null)
+                setPhase('landing')
+              }}
+            >
               Back
             </Button>
             <Box
