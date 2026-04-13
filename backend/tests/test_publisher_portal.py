@@ -57,10 +57,10 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
 
 
 def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Wallet JWT accepted when GET TRACTION_API_URL/tenant/wallet with same Bearer returns 200."""
+    """Wallet JWT accepted when GET TRACTION_API_URL/tenant with same Bearer returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
-        assert url == "https://traction.example/tenant/wallet"
+        assert url == "https://traction.example/tenant"
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
         return type("R", (), {"status_code": 200})()
 
@@ -94,14 +94,58 @@ def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch
     assert data["claims"]["expires"] == now + 3600
 
 
-def test_publisher_session_accepts_traction_wallet_when_tenant_wallet_fails_but_status_ok(
+def test_publisher_session_accepts_traction_wallet_when_tenant_fails_but_tenant_wallet_ok(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Fallback: /tenant/wallet non-200, then /status with same Bearer returns 200."""
+    """Fallback: /tenant non-200, then /tenant/wallet with same Bearer returns 200."""
 
     def fake_get(url: str, **kwargs: Any) -> Any:
         assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
+        if url == "https://traction.example/tenant":
+            return type("R", (), {"status_code": 404})()
         if url == "https://traction.example/tenant/wallet":
+            return type("R", (), {"status_code": 200})()
+        raise AssertionError(f"unexpected url {url!r}")
+
+    monkeypatch.setattr("app.security.httpx.get", fake_get)
+
+    s = Settings(
+        TEST_SUITE=False,
+        JWT_SECRET="portal-test-jwt-secret",
+        JWT_ALGORITHM="HS256",
+        PROJECT_TITLE="Test Publisher",
+        PROJECT_VERSION="v-test",
+        DOMAIN="https://pub.example",
+        TRACTION_TENANT_ID="tenant-1",
+        TRACTION_API_URL="https://traction.example",
+        REGISTRY_URL="https://registry.example",
+        DID_WEB_SERVER_URL="https://did.example",
+        ISSUER_REGISTRY_URL="https://registry.example",
+    )
+    monkeypatch.setattr("app.security.settings", s, raising=False)
+    monkeypatch.setattr("app.routers.publisher_portal.settings", s, raising=False)
+    app = build_app(s)
+    client = TestClient(app)
+
+    wid = "42c05cf1-2195-4050-84fd-4921f2599289"
+    now = int(time.time())
+    token = jwt.encode({"wallet_id": wid, "iat": now, "exp": now + 3600}, "any-secret", algorithm="HS256")
+    r = client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    assert r.json()["claims"]["client_id"] == wid
+
+
+def test_publisher_session_accepts_traction_wallet_when_tenant_paths_fail_but_status_ok(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Fallback: /tenant and /tenant/wallet non-200, then /status returns 200."""
+
+    def fake_get(url: str, **kwargs: Any) -> Any:
+        assert kwargs.get("headers", {}).get("Authorization", "").startswith("Bearer ")
+        if url in (
+            "https://traction.example/tenant",
+            "https://traction.example/tenant/wallet",
+        ):
             return type("R", (), {"status_code": 404})()
         if url == "https://traction.example/status":
             return type("R", (), {"status_code": 200})()

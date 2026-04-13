@@ -38,9 +38,9 @@ def decodeJWT(token: str) -> dict | None:
         return None
 
 
-# BC Traction tenant proxy validates wallet Bearer on /tenant/wallet; /status may be nginx 403 without forwarding.
-# ACA-Py deployments often expose /status — try that second.
-_TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = ("/tenant/wallet", "/status")
+# BC Traction tenant proxy: GET /tenant and GET /tenant/wallet accept the wallet Bearer; /status is often nginx 403.
+# ACA-Py-only stacks may answer on /status last.
+_TRACTION_WALLET_INTROSPECTION_PATHS: tuple[str, ...] = ("/tenant", "/tenant/wallet", "/status")
 
 
 def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
@@ -81,9 +81,9 @@ def _decode_traction_wallet_via_introspection(token: str) -> dict | None:
 def portal_token_rejected_http_detail() -> str:
     base = (settings.TRACTION_API_URL or "").strip().rstrip("/")
     wallet_probe = (
-        f"GET {base}/tenant/wallet or GET {base}/status"
+        f"GET {base}/tenant, GET {base}/tenant/wallet, or GET {base}/status"
         if base
-        else "GET (TRACTION_API_URL)/tenant/wallet or GET …/status"
+        else "GET (TRACTION_API_URL)/tenant, …/tenant/wallet, or …/status"
     )
     return (
         "Token not accepted. Publisher: use POST /auth/token from this deployment (JWT_SECRET must match). "
@@ -94,7 +94,7 @@ def portal_token_rejected_http_detail() -> str:
 def decode_portal_token(token: str) -> dict | None:
     """
     Publisher portal session: issuer JWT from ``POST /auth/token``, or Traction wallet JWT
-    accepted only after ``GET {TRACTION_API_URL}/tenant/wallet`` or ``GET {TRACTION_API_URL}/status``
+    accepted only after one of ``GET {TRACTION_API_URL}/tenant``, ``…/tenant/wallet``, or ``…/status``
     with the same Bearer returns 200 (Traction verifies the token; no wallet jwt-secret on this service).
     """
     pub = decodeJWT(token)

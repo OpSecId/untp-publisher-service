@@ -194,7 +194,8 @@ export function LoginPage() {
                     </>
                   ) : (
                     <> — The session endpoint did not accept this token. Try a publisher token from this API&apos;s
-                    POST /auth/token, or a wallet JWT that Traction still accepts on GET /tenant/wallet or GET /status.</>
+                    POST /auth/token, or a wallet JWT that Traction still accepts on GET /tenant, GET /tenant/wallet,
+                    or GET /status.</>
                   )}
                 </Text>
               )}
