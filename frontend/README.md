@@ -13,6 +13,25 @@ Optional `.env`:
 - `VITE_API_BASE_URL` — override API prefix (e.g. `https://publisher.example` in production).
 - `VITE_TRACTION_URL` — optional tenant proxy URL for future browser-side Traction calls (CORS must allow your origin).
 
+## Docker (static + nginx)
+
+Build args are **baked into the JS** at image build time (Vite):
+
+```bash
+docker build -t orgbook-publisher-ui -f frontend/Dockerfile frontend/ \
+  --build-arg VITE_API_BASE_URL=https://your-api.example.com
+```
+
+Optional: `--build-arg VITE_TRACTION_URL=https://your-tenant-proxy.example.com`
+
+Run:
+
+```bash
+docker run -p 8080:80 orgbook-publisher-ui
+```
+
+`VITE_API_BASE_URL` should be the **browser-visible** API origin (no trailing slash). If omitted, the bundle defaults to `/api` (same origin), which only works if you reverse-proxy `/api` to the backend behind this nginx.
+
 ## Scripts
 
 - `npm run dev` — Vite dev server
