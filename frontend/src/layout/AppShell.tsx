@@ -23,15 +23,15 @@ const navItems = [
 export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
-  const sidebarBg = useColorModeValue('gray.100', 'gray.900')
+  const sidebarBg = useColorModeValue('brand.50', 'gray.900')
   const sidebarColor = useColorModeValue('gray.800', 'gray.100')
   const brandColor = useColorModeValue('gray.900', 'white')
-  const navActiveBg = useColorModeValue('teal.50', 'whiteAlpha.200')
-  const navActiveColor = useColorModeValue('teal.800', 'white')
+  const navActiveBg = useColorModeValue('brand.50', 'whiteAlpha.200')
+  const navActiveColor = useColorModeValue('brand.500', 'white')
   const navIdleColor = useColorModeValue('gray.600', 'gray.300')
   const sidebarBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
-  const mainBg = useColorModeValue('gray.50', 'gray.800')
-  const mobileBarBg = useColorModeValue('gray.100', 'gray.900')
+  const mainBg = useColorModeValue('bc.lightGrayBg', 'gray.800')
+  const mobileBarBg = useColorModeValue('brand.50', 'gray.900')
   const mobileBarColor = useColorModeValue('gray.900', 'white')
   const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
   const navHoverInactiveBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.150')
@@ -131,7 +131,7 @@ export function AppShell() {
                 to={to}
                 size="sm"
                 variant={location.pathname === to ? 'solid' : 'outline'}
-                colorScheme="blue"
+                colorScheme="brand"
               >
                 {label}
               </Button>

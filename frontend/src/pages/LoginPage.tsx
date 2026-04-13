@@ -77,22 +77,22 @@ export function LoginPage() {
   const errorPreColor = useColorModeValue('gray.500', 'gray.600')
   const errorItalicColor = useColorModeValue('gray.500', 'gray.500')
   const errorOutlineScheme = useColorModeValue('gray', 'whiteAlpha')
-  const manualPageBg = useColorModeValue('gray.50', '#0a0e27')
-  const manualPurpleOpacity = useColorModeValue(0.08, 0.22)
-  const manualBlueOpacity = useColorModeValue(0.07, 0.2)
+  const manualPageBg = useColorModeValue('bc.lightGrayBg', 'brand.900')
+  const manualBlobBlueOpacity = useColorModeValue(0.08, 0.22)
+  const manualBlobGoldOpacity = useColorModeValue(0.07, 0.2)
   const manualBackColor = useColorModeValue('gray.600', 'whiteAlpha.700')
   const manualPanelBorder = useColorModeValue('gray.200', 'whiteAlpha.300')
 
-  const landingBg = useColorModeValue('gray.50', '#070b1a')
-  const landingColor = useColorModeValue('gray.900', 'white')
+  const landingBg = useColorModeValue('bc.lightGrayBg', 'brand.900')
+  const landingColor = useColorModeValue('bc.textPrimary', 'white')
   const landingMesh = useColorModeValue(
-    'linear(to-br, #ecfeff 0%, #f8fafc 35%, #e0f2f1 65%, #f1f5f9 100%)',
-    'linear(to-br, #040814 0%, #0c1528 40%, #0a1a1c 70%, #120a1e 100%)',
+    'linear(to-br, #F1F8FE 0%, #FAF9F8 35%, #FEF8E8 70%, #F3F2F1 100%)',
+    'linear(to-br, #011829 0%, #01264C 38%, #013366 72%, #1a1008 100%)',
   )
-  const blobPurple = useColorModeValue(0.1, 0.28)
-  const blobTeal = useColorModeValue(0.08, 0.2)
-  const blobCyan = useColorModeValue(0.06, 0.12)
-  const blobBlue = useColorModeValue(0.06, 0.12)
+  const blobBlue = useColorModeValue(0.1, 0.28)
+  const blobGold = useColorModeValue(0.08, 0.2)
+  const blobBlueMid = useColorModeValue(0.06, 0.12)
+  const blobBlueWide = useColorModeValue(0.06, 0.12)
   const gridBgImage = useColorModeValue(
     'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 0)',
     'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0)',
@@ -102,32 +102,32 @@ export function LoginPage() {
   const headerBadgeColor = useColorModeValue('gray.700', 'whiteAlpha.900')
   const headerBadgeBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const heroGradient = useColorModeValue(
-    'linear(to-r, gray.900, teal.700, cyan.800)',
-    'linear(to-r, white, cyan.100, teal.200)',
+    'linear(to-r, #2D2D2D, #013366, #FCBA19)',
+    'linear(to-r, white, #A8D0FB, #FCBA19)',
   )
   const heroBodyMuted = useColorModeValue('gray.600', 'whiteAlpha.800')
-  const heroEmphasis = useColorModeValue('teal.700', 'teal.200')
+  const heroEmphasis = useColorModeValue('brand.600', 'bcGold.300')
   const outlineBtnBorder = useColorModeValue('gray.300', 'whiteAlpha.400')
   const outlineBtnColor = useColorModeValue('gray.800', 'white')
   const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const outlineBtnHoverBorder = useColorModeValue('gray.400', 'whiteAlpha.600')
   const authHintMuted = useColorModeValue('gray.500', 'whiteAlpha.500')
-  const authAuthColor = useColorModeValue('teal.600', 'teal.300')
-  const authEndpointColor = useColorModeValue('gray.600', 'whiteAlpha.700')
+  const authAuthColor = useColorModeValue('brand.600', 'bcGold.300')
+  const authEndpointColor = useColorModeValue('bc.linkBlue', 'whiteAlpha.700')
   const glassBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const glassBg = useColorModeValue('rgba(255,255,255,0.94)', 'rgba(255,255,255,0.80)')
   const glassGlowOpacity = useColorModeValue(0.22, 0.35)
   const glassCardShadow = useColorModeValue(
-    '0 25px 80px rgba(15, 118, 110, 0.12)',
+    '0 25px 80px rgba(1, 51, 102, 0.14)',
     '0 25px 80px rgba(0,0,0,0.35)',
   )
-  const featuresKicker = useColorModeValue('teal.700', 'whiteAlpha.500')
+  const featuresKicker = useColorModeValue('brand.600', 'whiteAlpha.500')
   const featuresLead = useColorModeValue('gray.600', 'whiteAlpha.600')
   const featuresLeadStrong = useColorModeValue('gray.800', 'whiteAlpha.800')
   const featureCardBg = useColorModeValue('rgba(255,255,255,0.92)', 'rgba(255,255,255,0.60)')
   const featureCardBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const featureHoverShadow = useColorModeValue(
-    '0 20px 50px rgba(15, 118, 110, 0.12)',
+    '0 20px 50px rgba(1, 51, 102, 0.12)',
     '0 20px 50px rgba(0,0,0,0.25)',
   )
 
@@ -199,7 +199,7 @@ export function LoginPage() {
             418 — short and stout
           </Text>
           <Stack direction={{ base: 'column', sm: 'row' }} spacing={4} justify="center">
-            <Button colorScheme="blue" isLoading={loading} onClick={() => void signInFromClipboard()}>
+            <Button colorScheme="brand" isLoading={loading} onClick={() => void signInFromClipboard()}>
               Try again
             </Button>
             <Button variant="outline" colorScheme={errorOutlineScheme} onClick={() => setPhase('manual')}>
@@ -224,8 +224,8 @@ export function LoginPage() {
           w={{ base: '280px', md: '480px' }}
           h={{ base: '280px', md: '480px' }}
           borderRadius="full"
-          bg="purple.500"
-          opacity={manualPurpleOpacity}
+          bg="brand.500"
+          opacity={manualBlobBlueOpacity}
           filter="blur(100px)"
           pointerEvents="none"
         />
@@ -236,8 +236,8 @@ export function LoginPage() {
           w={{ base: '260px', md: '420px' }}
           h={{ base: '260px', md: '420px' }}
           borderRadius="full"
-          bg="blue.500"
-          opacity={manualBlueOpacity}
+          bg="bcGold.500"
+          opacity={manualBlobGoldOpacity}
           filter="blur(90px)"
           pointerEvents="none"
         />
@@ -270,7 +270,7 @@ export function LoginPage() {
                   autoComplete="off"
                 />
                 <Button
-                  colorScheme="blue"
+                  colorScheme="brand"
                   w="full"
                   onClick={() => void submitManualToken()}
                   isLoading={loading}
@@ -296,8 +296,8 @@ export function LoginPage() {
         w={{ base: 'min(90vw, 420px)', md: '560px' }}
         h={{ base: 'min(90vw, 420px)', md: '560px' }}
         borderRadius="full"
-        bg="purple.500"
-        opacity={blobPurple}
+        bg="brand.500"
+        opacity={blobBlue}
         filter="blur(110px)"
         pointerEvents="none"
       />
@@ -308,8 +308,8 @@ export function LoginPage() {
         w={{ base: 'min(85vw, 380px)', md: '520px' }}
         h={{ base: 'min(85vw, 380px)', md: '520px' }}
         borderRadius="full"
-        bg="teal.400"
-        opacity={blobTeal}
+        bg="bcGold.500"
+        opacity={blobGold}
         filter="blur(100px)"
         pointerEvents="none"
       />
@@ -320,8 +320,8 @@ export function LoginPage() {
         w={{ base: '200px', md: '320px' }}
         h={{ base: '200px', md: '320px' }}
         borderRadius="full"
-        bg="cyan.500"
-        opacity={blobCyan}
+        bg="brand.400"
+        opacity={blobBlueMid}
         filter="blur(80px)"
         pointerEvents="none"
       />
@@ -333,8 +333,8 @@ export function LoginPage() {
         w="min(120vw, 900px)"
         h="min(120vw, 900px)"
         borderRadius="full"
-        bg="blue.600"
-        opacity={blobBlue}
+        bg="brand.700"
+        opacity={blobBlueWide}
         filter="blur(130px)"
         pointerEvents="none"
       />
@@ -387,7 +387,7 @@ export function LoginPage() {
                 px={3}
                 py={1}
                 borderRadius="md"
-                colorScheme="purple"
+                colorScheme="brand"
                 variant="subtle"
                 textTransform="none"
                 fontWeight="600"
@@ -432,14 +432,13 @@ export function LoginPage() {
                   fontSize="md"
                   fontWeight="700"
                   rounded="xl"
-                  bgGradient="linear(to-r, teal.400, cyan.600)"
-                  color="white"
+                  colorScheme="brand"
                   isLoading={loading}
                   loadingText="Authenticating"
                   _hover={{
                     opacity: 0.95,
                     transform: 'translateY(-1px)',
-                    boxShadow: '0 12px 40px rgba(45, 212, 191, 0.35)',
+                    boxShadow: '0 12px 36px rgba(1, 51, 102, 0.35)',
                   }}
                   _active={{ transform: 'translateY(0)' }}
                   transition="all 0.2s ease"
@@ -494,7 +493,7 @@ export function LoginPage() {
                 position="absolute"
                 inset="-2px"
                 borderRadius="3xl"
-                bgGradient="linear(to-br, whiteAlpha.400, transparent, teal.500)"
+                bgGradient="linear(to-br, whiteAlpha.400, transparent, bcGold.500)"
                 opacity={glassGlowOpacity}
                 filter="blur(1px)"
               />
@@ -549,7 +548,7 @@ export function LoginPage() {
                         w={2}
                         h={2}
                         borderRadius="full"
-                        bgGradient="linear(to-br, teal.400, cyan.600)"
+                        bgGradient="linear(to-br, brand.500, bcGold.500)"
                         flexShrink={0}
                       />
                       <Box>
@@ -629,7 +628,7 @@ export function LoginPage() {
                     align="center"
                     justify="center"
                     rounded="xl"
-                    bgGradient="linear(to-br, teal.500, cyan.700)"
+                    bgGradient="linear(to-br, brand.600, bcGold.600)"
                     color="white"
                     mb={5}
                   >
