@@ -15,7 +15,9 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Progress,
   Skeleton,
+  Spacer,
   Stack,
   Table,
   TableContainer,
@@ -34,6 +36,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { ApiError, apiJson } from '../api/client'
 import type { PublisherIssuerRow, PublisherIssuersResponse, PublisherRegisterIssuerResponse } from '../api/types'
 
+const REGISTER_WIZARD_STEPS = [
+  { title: 'Description', subtitle: 'What this issuer represents' },
+  { title: 'Name & scope', subtitle: 'Identifiers for the DID path' },
+  { title: 'Delegated key', subtitle: 'Optional external signing key' },
+] as const
+
 export function IssuersPage() {
   const toast = useToast()
   const registerModal = useDisclosure()
@@ -46,6 +54,7 @@ export function IssuersPage() {
   const [description, setDescription] = useState('')
   const [multikey, setMultikey] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [registerStep, setRegisterStep] = useState(0)
 
   const cardBg = useColorModeValue('white', 'gray.700')
   const cardBorder = useColorModeValue('gray.100', 'gray.600')
@@ -57,6 +66,7 @@ export function IssuersPage() {
     setScope('')
     setDescription('')
     setMultikey('')
+    setRegisterStep(0)
   }, [])
 
   const loadIssuers = useCallback(async () => {
@@ -80,6 +90,35 @@ export function IssuersPage() {
   const closeRegisterModal = () => {
     registerModal.onClose()
     resetRegisterForm()
+  }
+
+  const openRegisterWizard = () => {
+    resetRegisterForm()
+    registerModal.onOpen()
+  }
+
+  const goNextStep = () => {
+    if (registerStep === 0) {
+      if (!description.trim()) {
+        toast({ title: 'Description is required', status: 'warning' })
+        return
+      }
+      setRegisterStep(1)
+      return
+    }
+    if (registerStep === 1) {
+      if (!name.trim() || !scope.trim()) {
+        toast({ title: 'Name and scope are required', status: 'warning' })
+        return
+      }
+      setRegisterStep(2)
+    }
+  }
+
+  const goPrevStep = () => {
+    if (registerStep > 0) {
+      setRegisterStep((s) => s - 1)
+    }
   }
 
   const submitRegister = async () => {
@@ -134,7 +173,7 @@ export function IssuersPage() {
       </Box>
 
       <Box>
-        <Button colorScheme="brand" size="sm" onClick={registerModal.onOpen}>
+        <Button colorScheme="brand" size="sm" onClick={openRegisterWizard}>
           Register issuer
         </Button>
       </Box>
@@ -142,67 +181,120 @@ export function IssuersPage() {
       <Modal isOpen={registerModal.isOpen} onClose={closeRegisterModal} size="lg" motionPreset="slideInBottom">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Register issuer</ModalHeader>
+          <ModalHeader pb={2}>
+            <Stack spacing={2}>
+              <Text fontSize="md" fontWeight="semibold">
+                Register issuer
+              </Text>
+              <Stack spacing={1}>
+                <Text fontSize="xs" fontWeight="normal" color={muted}>
+                  Step {registerStep + 1} of {REGISTER_WIZARD_STEPS.length} — {REGISTER_WIZARD_STEPS[registerStep].title}
+                </Text>
+                <Text fontSize="xs" fontWeight="normal" color={muted}>
+                  {REGISTER_WIZARD_STEPS[registerStep].subtitle}
+                </Text>
+                <Progress
+                  value={((registerStep + 1) / REGISTER_WIZARD_STEPS.length) * 100}
+                  size="xs"
+                  colorScheme="brand"
+                  borderRadius="sm"
+                />
+              </Stack>
+            </Stack>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Stack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Short identifier (DID path segment)"
-                  size="sm"
-                />
-                <FormHelperText>Used with scope to build the DID namespace slug.</FormHelperText>
-              </FormControl>
-              <FormControl>
-                <FormLabel>Display name</FormLabel>
-                <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Human-readable label for lists and DID document"
-                  size="sm"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>Scope</FormLabel>
-                <Input
-                  value={scope}
-                  onChange={(e) => setScope(e.target.value)}
-                  placeholder="Legal or programme scope (used for DID namespace slug)"
-                  size="sm"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>Description</FormLabel>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Human-readable description"
-                  size="sm"
-                  rows={3}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Delegated multikey (optional)</FormLabel>
-                <Input
-                  value={multikey}
-                  onChange={(e) => setMultikey(e.target.value)}
-                  placeholder="z6Mk… (additional issuing key)"
-                  size="sm"
-                  fontFamily="mono"
-                />
-              </FormControl>
-            </Stack>
+            {registerStep === 0 ? (
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Human-readable description of this issuer’s role or authority"
+                    size="sm"
+                    rows={5}
+                  />
+                  <FormHelperText>
+                    Stored on the DID document and helps others understand who this issuer is. You can refine technical
+                    identifiers in the next step.
+                  </FormHelperText>
+                </FormControl>
+              </Stack>
+            ) : null}
+            {registerStep === 1 ? (
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Name</FormLabel>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Short identifier (DID path segment)"
+                    size="sm"
+                  />
+                  <FormHelperText>Used with scope to build the DID namespace slug.</FormHelperText>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Scope</FormLabel>
+                  <Input
+                    value={scope}
+                    onChange={(e) => setScope(e.target.value)}
+                    placeholder="Legal or programme scope (used for DID namespace slug)"
+                    size="sm"
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Display name</FormLabel>
+                  <Input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Human-readable label for lists and DID document (optional)"
+                    size="sm"
+                  />
+                  <FormHelperText>If empty, the technical name is shown.</FormHelperText>
+                </FormControl>
+              </Stack>
+            ) : null}
+            {registerStep === 2 ? (
+              <Stack spacing={4}>
+                <Text fontSize="sm" color={muted}>
+                  By default the publisher provisions the primary signing key in Traction. If you also use an
+                  externally managed key, add its multikey here so it can be registered as a delegated verification
+                  method on the DID document.
+                </Text>
+                <FormControl>
+                  <FormLabel>Delegated multikey (optional)</FormLabel>
+                  <Input
+                    value={multikey}
+                    onChange={(e) => setMultikey(e.target.value)}
+                    placeholder="z6Mk… (additional issuing key)"
+                    size="sm"
+                    fontFamily="mono"
+                  />
+                  <FormHelperText>Leave blank to use only the publisher-provisioned key.</FormHelperText>
+                </FormControl>
+              </Stack>
+            ) : null}
           </ModalBody>
-          <ModalFooter gap={2}>
+          <ModalFooter gap={2} flexWrap="wrap" width="100%">
             <Button variant="ghost" onClick={closeRegisterModal} isDisabled={submitting}>
               Cancel
             </Button>
-            <Button colorScheme="brand" onClick={() => void submitRegister()} isLoading={submitting}>
-              Register issuer
-            </Button>
+            {registerStep > 0 ? (
+              <Button variant="outline" onClick={goPrevStep} isDisabled={submitting}>
+                Back
+              </Button>
+            ) : null}
+            <Spacer />
+            {registerStep < REGISTER_WIZARD_STEPS.length - 1 ? (
+              <Button colorScheme="brand" onClick={goNextStep}>
+                Next
+              </Button>
+            ) : (
+              <Button colorScheme="brand" onClick={() => void submitRegister()} isLoading={submitting}>
+                Register issuer
+              </Button>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
