@@ -10,6 +10,10 @@ export type PublisherSession = {
     traction_wallet_introspection_paths: string[]
     did_web_server_url: string
     issuer_registry_url: string
+    /** MongoDB database name for IssuerRecord, CredentialTypeRecord, etc. (not the URI path auth db). */
+    mongo_app_database: string
+    /** `did:key:{PUBLISHER_MULTIKEY}` — publisher witness / endorser key surfaced for operators. */
+    publisher_witness_id: string
   }
 }
 

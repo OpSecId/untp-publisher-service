@@ -51,7 +51,9 @@ class Settings(BaseSettings):
     ISSUER_REGISTRY_URL: str = Field(default="http://localhost")
 
     SECRET_KEY: str = Field(default="dev-local")
-    JWT_SECRET: str = Field(default="dev-local")
+    #: HS256 signing; RFC 7518 recommends >=32 bytes. Short values are SHA256-stretched at runtime (see
+    #: ``jwt_hs256_signing_key``); use a long random secret in production.
+    JWT_SECRET: str = Field(default="dev-local-use-32byte-secret-minimum")
     JWT_ALGORITHM: str = "HS256"
 
     #: Full MongoDB connection URI (e.g. Railway ``MONGO_URL``). When non-empty, this is used

@@ -89,6 +89,11 @@ async def publisher_register_issuer(
         ) from e
 
     iid = did_document.get("id")
+    logger.info(
+        "publisher_register_issuer: stored IssuerRecord in MongoDB db=%s id=%s",
+        settings.MONGO_APP_DATABASE,
+        iid,
+    )
     out_name = registration.get("display_name") or registration.get("name") or ""
     return JSONResponse(
         status_code=201,
@@ -199,6 +204,9 @@ async def publisher_session(token: str = Depends(verify_portal_jwt_token)):
     if not payload or not payload.get("client_id"):
         raise HTTPException(status_code=403, detail=portal_token_rejected_http_detail())
 
+    mk = (settings.PUBLISHER_MULTIKEY or "").strip()
+    publisher_witness_id = f"did:key:{mk}" if mk else ""
+
     return JSONResponse(
         status_code=200,
         content={
@@ -215,6 +223,8 @@ async def publisher_session(token: str = Depends(verify_portal_jwt_token)):
                 "traction_wallet_introspection_paths": list(TRACTION_WALLET_INTROSPECTION_PATHS),
                 "did_web_server_url": settings.DID_WEB_SERVER_URL,
                 "issuer_registry_url": settings.ISSUER_REGISTRY_URL,
+                "mongo_app_database": settings.MONGO_APP_DATABASE,
+                "publisher_witness_id": publisher_witness_id,
             },
         },
     )

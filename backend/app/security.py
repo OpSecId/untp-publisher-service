@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import time
@@ -13,6 +14,23 @@ from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBea
 from config import settings
 
 logger = logging.getLogger(__name__)
+
+# HS256 keys should be >= 256 bits (RFC 7518). PyJWT warns on short strings; we derive a 32-byte key when needed.
+_JWT_HS256_MIN_BYTES = 32
+
+
+def jwt_hs256_signing_key(secret: str) -> str | bytes:
+    """
+    Return the key material PyJWT uses for HS256.
+
+    If ``secret`` is shorter than 32 UTF-8 bytes, returns ``SHA256(secret_utf8)``
+    (32 bytes) so HMAC is well-sized and ``InsecureKeyLengthWarning`` is avoided.
+    Longer secrets are passed through unchanged (existing deployments keep behaviour).
+    """
+    raw = secret.encode("utf-8")
+    if len(raw) >= _JWT_HS256_MIN_BYTES:
+        return secret
+    return hashlib.sha256(raw).digest()
 
 
 X_API_KEY = APIKeyHeader(name="X-API-Key")
@@ -31,7 +49,9 @@ def check_api_key_header(x_api_key: str = Depends(X_API_KEY)):
 def decodeJWT(token: str) -> dict | None:
     try:
         decoded_token = jwt.decode(
-            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+            token,
+            jwt_hs256_signing_key(settings.JWT_SECRET),
+            algorithms=[settings.JWT_ALGORITHM],
         )
         if decoded_token.get("expires", 0) < int(time.time()):
             return None

@@ -11,24 +11,37 @@ import {
   Heading,
   HStack,
   Icon,
+  IconButton,
   Input,
   Skeleton,
   Stack,
+  Stat,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
   Text,
   Tooltip,
   useColorModeValue,
   useToast,
 } from '@chakra-ui/react'
 import { useState, type MouseEvent } from 'react'
-import { MdInfoOutline } from 'react-icons/md'
+import { MdInfoOutline, MdRefresh } from 'react-icons/md'
 import { apiJson } from '../api/client'
 import { usePublisherSession } from '../hooks/usePublisherSession'
 import { apiBaseUrl } from '../api/baseUrl'
 import { WalletTractionProbePanel } from '../components/WalletTractionProbePanel'
 import type { PublisherSession } from '../api/types'
 
+function formatExpiry(epoch: number): string {
+  try {
+    return new Date(epoch * 1000).toLocaleString()
+  } catch {
+    return String(epoch)
+  }
+}
+
 export function SettingsPage() {
-  const { session, loading, error } = usePublisherSession()
+  const { session, loading, error, reload, refreshing } = usePublisherSession()
   const toast = useToast()
 
   const [adminKey, setAdminKey] = useState('')
@@ -90,7 +103,23 @@ export function SettingsPage() {
   }
 
   const env = session?.environment
+  const claims = session?.claims
   const placeholderBackendVars = collectPlaceholderBackendUrls(env)
+
+  const refreshSession = async () => {
+    try {
+      const ok = await reload({ silent: true })
+      if (ok) {
+        toast({ title: 'Session refreshed', status: 'success', duration: 2000 })
+      }
+    } catch (e) {
+      toast({
+        title: 'Refresh failed',
+        description: e instanceof Error ? e.message : 'Request failed',
+        status: 'error',
+      })
+    }
+  }
 
   return (
     <Box maxW="3xl">
@@ -100,6 +129,33 @@ export function SettingsPage() {
       <Text color={muted} mb={10}>
         Environment surfaced by the API for your JWT, plus optional admin actions.
       </Text>
+
+      <Box position="relative" bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8} mb={8}>
+        <Tooltip label="Reload session and token expiry from your current access token" placement="top" hasArrow>
+          <IconButton
+            aria-label="Refresh session"
+            icon={<MdRefresh size={20} />}
+            variant="ghost"
+            size="sm"
+            position="absolute"
+            top={3}
+            right={3}
+            zIndex={1}
+            onClick={() => void refreshSession()}
+            isLoading={refreshing}
+            isRound
+          />
+        </Tooltip>
+        <Stat>
+          <StatLabel>Token expiry</StatLabel>
+          <StatNumber fontSize="md" pr={14}>
+            {claims ? formatExpiry(claims.expires) : '—'}
+          </StatNumber>
+          <StatHelpText>
+            Re-fetch with the button if you renewed your token elsewhere. For a new token, sign in again.
+          </StatHelpText>
+        </Stat>
+      </Box>
 
       <Box bg={cardBg} rounded="xl" shadow="sm" borderWidth="1px" borderColor={cardBorder} p={8} mb={8}>
         <Heading size="sm" mb={4}>
@@ -119,7 +175,7 @@ export function SettingsPage() {
           <Alert status="warning" variant="left-accent" borderRadius="md" mb={4}>
             <AlertIcon />
             <Box>
-              <Text fontWeight="medium">DID web server URL looks like a dev default</Text>
+              <Text fontWeight="medium">DID WebVH server URL looks like a dev default</Text>
               <Text fontSize="sm" mt={1}>
                 This value uses <code>localhost</code>, <code>127.0.0.1</code>, or is empty. On the API host (e.g.
                 Railway), set <code>{placeholderBackendVars.map((v) => v.envVar).join(', ')}</code> to a URL the
@@ -131,9 +187,11 @@ export function SettingsPage() {
         <Stack spacing={3} fontSize="sm">
           <Row label="Traction API URL" value={env?.traction_api_url} />
           <Row label="Publisher Tenant ID" value={env?.traction_tenant_id} />
+          <Row label="Publisher Witness ID" value={env?.publisher_witness_id || '—'} />
+          <Row label="DID WebVH Server" value={env?.did_web_server_url} />
+          <Row label="Issuer Registry" value={env?.issuer_registry_url} />
           <WalletTractionProbePanel tractionApiUrl={env?.traction_api_url} />
-          <Row label="DID web(vh) server" value={env?.did_web_server_url} />
-          <Row label="Issuer registry" value={env?.issuer_registry_url} />
+          <Row label="MongoDB app database" value={env?.mongo_app_database} />
         </Stack>
       </Box>
 
@@ -248,7 +306,7 @@ function collectPlaceholderBackendUrls(
   const out: { rowLabel: string; envVar: string }[] = []
   if (isDevPlaceholderUrl(env.did_web_server_url)) {
     out.push({
-      rowLabel: 'DID web(vh) server',
+      rowLabel: 'DID WebVH Server',
       envVar: 'DID_WEB_SERVER_URL (or WEBH_SERVER_URL)',
     })
   }

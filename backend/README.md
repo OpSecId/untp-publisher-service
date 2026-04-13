@@ -45,13 +45,15 @@ Set either a single URI or the discrete fields so PyMongo can reach a real serve
 | Variable | Purpose |
 |----------|---------|
 | **`MONGO_URL`** | Optional full MongoDB URI (e.g. `mongodb://user:pass@host:27017/?authSource=admin`). When set and non-empty, **host/port/user/password/MONGO_DB are ignored** for the connection handshake. |
-| **`MONGO_APP_DATABASE`** | MongoDB database name for application collections (default **`untp-publisher`**). |
+| **`MONGO_APP_DATABASE`** | MongoDB database name for application collections (default **`untp-publisher`**). Issuers and credential types are stored here — **not** necessarily the database name in the path of **`MONGO_URL`** (e.g. Atlas/Railway often put a different default in the URI). Use Compass/Atlas with this database name and collection **`IssuerRecord`**. |
 | **`MONGO_HOST`** | Used only if `MONGO_URL` is unset (e.g. Compose service name `mongo`, not `localhost` in a lone container) |
 | **`MONGO_PORT`** | `27017` |
 | **`MONGO_USER`** / **`MONGO_PASSWORD`** | Match your MongoDB user (defaults `dev` / `dev`) |
 | **`MONGO_DB`** | Passed to PyMongo as `authSource` when not using `MONGO_URL` (default `dev`) |
 
 You still need the rest of your deployment secrets and URLs (**`JWT_SECRET`**, **`TRACTION_*`**, **`DOMAIN`**, **`DID_WEB_SERVER_URL`**, **`ISSUER_REGISTRY_URL`**, etc.) from [`config.py`](config.py) / your `.env` template. **`WEBH_SERVER_URL`** is accepted as an alias for **`DID_WEB_SERVER_URL`** (e.g. BC WebVH sandbox URL).
+
+**`JWT_SECRET`:** RFC 7518 recommends at least 32 bytes for HS256. If the value is shorter, the API derives a 32-byte HMAC key with SHA256 (see `jwt_hs256_signing_key` in [`app/security.py`](app/security.py)); prefer a long random secret in production so signing uses the raw string and behaviour matches typical JWT tooling.
 
 Example with a Compose network where the database service is named `mongo`:
 

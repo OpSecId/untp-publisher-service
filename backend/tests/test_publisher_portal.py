@@ -10,7 +10,10 @@ from pymongo.errors import PyMongoError
 
 from app import build_app
 from app.plugins import MongoClientError
+from app.security import jwt_hs256_signing_key
 from config import Settings
+
+_PORTAL_HS256_KEY = jwt_hs256_signing_key("portal-test-jwt-secret")
 
 
 @pytest.fixture()
@@ -39,7 +42,11 @@ def test_publisher_session_requires_auth(portal_client: TestClient) -> None:
 
 
 def test_publisher_session_rejects_bad_signature(portal_client: TestClient) -> None:
-    bad = jwt.encode({"client_id": "x", "expires": int(time.time()) + 3600}, "wrong", algorithm="HS256")
+    bad = jwt.encode(
+        {"client_id": "x", "expires": int(time.time()) + 3600},
+        jwt_hs256_signing_key("wrong"),
+        algorithm="HS256",
+    )
     r = portal_client.get("/publisher/session", headers={"Authorization": f"Bearer {bad}"})
     assert r.status_code == 403
 
@@ -47,7 +54,7 @@ def test_publisher_session_rejects_bad_signature(portal_client: TestClient) -> N
 def test_publisher_session_returns_environment(portal_client: TestClient) -> None:
     token = jwt.encode(
         {"client_id": "did:web:issuer", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
@@ -64,6 +71,8 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
     ]
     assert data["environment"]["did_web_server_url"] == "https://did.example"
     assert data["environment"]["issuer_registry_url"] == "https://registry.example"
+    assert data["environment"]["mongo_app_database"] == "untp-publisher"
+    assert data["environment"]["publisher_witness_id"] == "did:key:dev-local"
 
 
 def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -95,7 +104,11 @@ def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch
 
     wid = "42c05cf1-2195-4050-84fd-4921f2599289"
     now = int(time.time())
-    token = jwt.encode({"wallet_id": wid, "iat": now, "exp": now + 3600}, "any-secret", algorithm="HS256")
+    token = jwt.encode(
+        {"wallet_id": wid, "iat": now, "exp": now + 3600},
+        jwt_hs256_signing_key("any-secret"),
+        algorithm="HS256",
+    )
     r = client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
     data = r.json()
@@ -139,7 +152,11 @@ def test_publisher_session_accepts_traction_wallet_when_tenant_fails_but_tenant_
 
     wid = "42c05cf1-2195-4050-84fd-4921f2599289"
     now = int(time.time())
-    token = jwt.encode({"wallet_id": wid, "iat": now, "exp": now + 3600}, "any-secret", algorithm="HS256")
+    token = jwt.encode(
+        {"wallet_id": wid, "iat": now, "exp": now + 3600},
+        jwt_hs256_signing_key("any-secret"),
+        algorithm="HS256",
+    )
     r = client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
     assert r.json()["claims"]["client_id"] == wid
@@ -183,7 +200,11 @@ def test_publisher_session_accepts_traction_wallet_when_only_server_status_confi
 
     wid = "42c05cf1-2195-4050-84fd-4921f2599289"
     now = int(time.time())
-    token = jwt.encode({"wallet_id": wid, "iat": now, "exp": now + 3600}, "any-secret", algorithm="HS256")
+    token = jwt.encode(
+        {"wallet_id": wid, "iat": now, "exp": now + 3600},
+        jwt_hs256_signing_key("any-secret"),
+        algorithm="HS256",
+    )
     r = client.get("/publisher/session", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
     assert r.json()["claims"]["client_id"] == wid
@@ -217,7 +238,7 @@ def test_publisher_traction_wallet_probes_returns_per_path(portal_client: TestCl
     monkeypatch.setattr("app.security.httpx.get", fake_get)
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/traction-wallet-probes", headers={"Authorization": f"Bearer {token}"})
@@ -251,7 +272,7 @@ def test_publisher_traction_wallet_probes_empty_when_no_traction_url(monkeypatch
     client = TestClient(app)
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = client.get("/publisher/traction-wallet-probes", headers={"Authorization": f"Bearer {token}"})
@@ -281,7 +302,7 @@ def test_publisher_issuers_returns_redacted_rows(portal_client: TestClient, monk
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/issuers", headers={"Authorization": f"Bearer {token}"})
@@ -305,7 +326,7 @@ def test_publisher_issuers_503_on_mongo_error(portal_client: TestClient, monkeyp
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/issuers", headers={"Authorization": f"Bearer {token}"})
@@ -346,7 +367,7 @@ def test_publisher_credential_types_returns_summaries(
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
@@ -380,7 +401,7 @@ def test_publisher_credential_types_503_on_mongo_error(
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/credential-types", headers={"Authorization": f"Bearer {token}"})
@@ -416,7 +437,7 @@ def test_publisher_credentials_returns_summaries(portal_client: TestClient, monk
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/credentials", headers={"Authorization": f"Bearer {token}"})
@@ -444,7 +465,7 @@ def test_publisher_credentials_503_on_mongo_error(portal_client: TestClient, mon
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.get("/publisher/credentials", headers={"Authorization": f"Bearer {token}"})
@@ -478,7 +499,7 @@ def test_publisher_register_credential_type_success(portal_client: TestClient, m
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     body: dict[str, Any] = {
@@ -510,7 +531,7 @@ def test_publisher_register_credential_type_duplicate(portal_client: TestClient,
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.post(
@@ -558,7 +579,7 @@ def test_publisher_register_issuer_success(portal_client: TestClient, monkeypatc
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.post(
@@ -593,7 +614,7 @@ def test_publisher_register_issuer_strips_blank_multikey(
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.post(
@@ -620,7 +641,7 @@ def test_publisher_register_issuer_409_on_duplicate(portal_client: TestClient, m
 
     token = jwt.encode(
         {"client_id": "did:web:x", "expires": int(time.time()) + 3600},
-        "portal-test-jwt-secret",
+        _PORTAL_HS256_KEY,
         algorithm="HS256",
     )
     r = portal_client.post(

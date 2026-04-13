@@ -132,10 +132,6 @@ export function WalletTractionProbePanel({ tractionApiUrl }: { tractionApiUrl: s
 
   return (
     <Box mt={4}>
-      <Text fontSize="xs" color="gray.500" mb={2}>
-        Expand each probe to see HTTP status, content type, and a trimmed body (large{' '}
-        <code>/tenant/server/status/config</code> payloads are summarized).
-      </Text>
       <Accordion allowMultiple reduceMotion>
         {data.probes.map((p: TractionWalletProbeRow) => (
           <AccordionItem key={p.path} borderWidth="1px" borderRadius="md" mb={2} borderColor="gray.200">

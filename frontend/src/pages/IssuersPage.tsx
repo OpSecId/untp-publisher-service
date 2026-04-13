@@ -167,7 +167,10 @@ export function IssuersPage() {
           Registered issuers (DID and name). Use <strong>Register issuer</strong> to provision a DID on the configured
           Web server, bind keys in Traction, and store the issuer record — same flow as{' '}
           <code>POST /registrations/issuers</code>, but with your portal session (no separate API key in the
-          browser).
+          browser). MongoDB writes use the <strong>MONGO_APP_DATABASE</strong> name (default{' '}
+          <strong>untp-publisher</strong>), collection <code>IssuerRecord</code> — not necessarily the database in your{' '}
+          <code>MONGO_URL</code> path.
+          The resolved name is shown under <strong>Settings → Server environment → MongoDB app database</strong>.
         </Text>
       </Box>
 

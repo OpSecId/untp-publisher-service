@@ -7,7 +7,7 @@ import time
 import jwt
 import secrets
 import hashlib
-from app.security import check_api_key_header
+from app.security import check_api_key_header, jwt_hs256_signing_key
 
 router = APIRouter(prefix="/auth")
 
@@ -56,6 +56,10 @@ async def request_client_token(request_body: RequestToken):
         )
 
     payload = {"client_id": client_id, "expires": int(time.time()) + 3600}
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    token = jwt.encode(
+        payload,
+        jwt_hs256_signing_key(settings.JWT_SECRET),
+        algorithm=settings.JWT_ALGORITHM,
+    )
 
     return JSONResponse(status_code=200, content={"access_token": token})

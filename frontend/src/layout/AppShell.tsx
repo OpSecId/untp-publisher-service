@@ -13,8 +13,8 @@ import {
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { MdBusiness, MdDashboard, MdFactCheck, MdLayers } from 'react-icons/md'
 import { setAccessToken } from '../auth/storage'
+import { AppPortalFooter, APP_PORTAL_FOOTER_RESERVED } from '../components/AppPortalFooter'
 import { ColorModeToggle, type ColorModeToggleVariant } from '../components/ColorModeToggle'
-import { PoweredByTraction } from '../components/PoweredByTraction'
 import { ProfileMenu } from '../components/ProfileMenu'
 import { usePublisherSession } from '../hooks/usePublisherSession'
 import { BC_THEME_CONFIG } from '../config/bcThemeColors'
@@ -37,12 +37,10 @@ export function AppShell() {
   const navActiveBg = useColorModeValue('brand.50', 'whiteAlpha.200')
   const navActiveColor = useColorModeValue('brand.500', 'white')
   const navIdleColor = useColorModeValue('gray.600', 'gray.300')
-  const sidebarBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
   const mainBg = useColorModeValue('bc.lightGrayBg', 'gray.800')
   const barColor = useColorModeValue('gray.900', 'white')
   const toggleVariant = useColorModeValue('default', 'onDark') as ColorModeToggleVariant
   const navHoverInactiveBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.150')
-  const mobileFooterBorder = useColorModeValue('gray.200', 'gray.700')
   const topBarBg = useColorModeValue(
     BC_THEME_CONFIG.appChrome.stickyBarBgLight,
     BC_THEME_CONFIG.appChrome.stickyBarBgDark,
@@ -114,6 +112,7 @@ export function AppShell() {
         minH={0}
         minW={0}
         align="stretch"
+        pb={APP_PORTAL_FOOTER_RESERVED}
       >
         <Box
           display={{ base: 'block', md: 'none' }}
@@ -179,29 +178,15 @@ export function AppShell() {
               )
             })}
           </VStack>
-          <Box flex="1" minH={4} aria-hidden />
-          <Box pt={8} mt={12} borderTopWidth="1px" borderColor={sidebarBorder}>
-            <PoweredByTraction justify="flex-start" />
-          </Box>
         </Box>
 
         <Flex direction="column" flex="1" minW={0}>
           <Box as="main" flex="1" bg={mainBg} p={{ base: 4, md: 10 }} maxW="1200px" w="full" mx="auto">
             <Outlet />
           </Box>
-          <Box
-            as="footer"
-            display={{ base: 'block', md: 'none' }}
-            borderTopWidth="1px"
-            borderColor={mobileFooterBorder}
-            bg={mainBg}
-            py={4}
-            px={4}
-          >
-            <PoweredByTraction />
-          </Box>
         </Flex>
       </Flex>
+      <AppPortalFooter />
     </Flex>
   )
 }
