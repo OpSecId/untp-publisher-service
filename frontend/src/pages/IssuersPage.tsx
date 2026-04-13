@@ -13,9 +13,7 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
-  Progress,
   Skeleton,
   Spacer,
   Stack,
@@ -33,6 +31,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useCallback, useEffect, useState } from 'react'
+import { WizardAnimatedStep, WizardHeaderChrome } from '../components/WizardModalChrome'
 import { ApiError, apiJson } from '../api/client'
 import type { PublisherIssuerRow, PublisherIssuersResponse, PublisherRegisterIssuerResponse } from '../api/types'
 
@@ -58,6 +57,12 @@ export function IssuersPage() {
   const cardBg = useColorModeValue('white', 'gray.700')
   const cardBorder = useColorModeValue('gray.100', 'gray.600')
   const muted = useColorModeValue('gray.600', 'gray.400')
+  const wizardBodyBg = useColorModeValue('white', 'gray.900')
+  const wizardFooterBg = useColorModeValue('gray.50', 'blackAlpha.400')
+  const wizardFooterBorder = useColorModeValue('gray.100', 'gray.700')
+  const wizardCloseBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
+  const wizardCloseHoverBg = useColorModeValue('blackAlpha.200', 'whiteAlpha.300')
+  const wizardCalloutBg = useColorModeValue('gray.50', 'whiteAlpha.50')
 
   const resetRegisterForm = useCallback(() => {
     setName('')
@@ -173,110 +178,119 @@ export function IssuersPage() {
       </Box>
 
       <Modal isOpen={registerModal.isOpen} onClose={closeRegisterModal} size="lg" motionPreset="slideInBottom">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader pb={2}>
-            <Stack spacing={2}>
-              <Text fontSize="md" fontWeight="semibold">
-                Register issuer
-              </Text>
-              <Stack spacing={1}>
-                <Text fontSize="xs" fontWeight="normal" color={muted}>
-                  Step {registerStep + 1} of {REGISTER_WIZARD_STEPS.length} — {REGISTER_WIZARD_STEPS[registerStep].title}
-                </Text>
-                <Text fontSize="xs" fontWeight="normal" color={muted}>
-                  {REGISTER_WIZARD_STEPS[registerStep].subtitle}
-                </Text>
-                <Progress
-                  value={((registerStep + 1) / REGISTER_WIZARD_STEPS.length) * 100}
-                  size="xs"
-                  colorScheme="brand"
-                  borderRadius="sm"
-                />
-              </Stack>
-            </Stack>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {registerStep === 0 ? (
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Description</FormLabel>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Human-readable description of this issuer’s role or authority"
-                    size="sm"
-                    rows={5}
-                  />
-                  <FormHelperText>
-                    Stored on the DID document and helps others understand who this issuer is. You can refine technical
-                    identifiers in the next step.
-                  </FormHelperText>
-                </FormControl>
-              </Stack>
-            ) : null}
-            {registerStep === 1 ? (
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Short identifier (DID path segment)"
-                    size="sm"
-                  />
-                  <FormHelperText>Used with scope to build the DID namespace slug.</FormHelperText>
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Scope</FormLabel>
-                  <Input
-                    value={scope}
-                    onChange={(e) => setScope(e.target.value)}
-                    placeholder="e.g. Petroleum and Natural Gas Act"
-                    size="sm"
-                  />
-                  <FormHelperText>Legal or programme scope (used for DID namespace slug)</FormHelperText>
-                </FormControl>
-              </Stack>
-            ) : null}
-            {registerStep === 2 ? (
-              <Stack spacing={4}>
-                <Text fontSize="sm" color={muted}>
-                  By default the publisher provisions the primary signing key in Traction. If you also use an
-                  externally managed key, add its multikey here so it can be registered as a delegated verification
-                  method on the DID document.
-                </Text>
-                <FormControl>
-                  <FormLabel>Delegated multikey (optional)</FormLabel>
-                  <Input
-                    value={multikey}
-                    onChange={(e) => setMultikey(e.target.value)}
-                    placeholder="z6Mk… (additional issuing key)"
-                    size="sm"
-                    fontFamily="mono"
-                  />
-                  <FormHelperText>Leave blank to use only the publisher-provisioned key.</FormHelperText>
-                </FormControl>
-              </Stack>
-            ) : null}
+        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
+        <ModalContent borderRadius="2xl" overflow="hidden" boxShadow="2xl" mx={3}>
+          <ModalCloseButton top={4} right={4} zIndex={2} rounded="full" bg={wizardCloseBg} _hover={{ bg: wizardCloseHoverBg }} />
+          <WizardHeaderChrome title="Register issuer" steps={REGISTER_WIZARD_STEPS} activeIndex={registerStep} />
+          <ModalBody px={{ base: 5, md: 8 }} py={6} bg={wizardBodyBg}>
+            <WizardAnimatedStep stepKey={registerStep}>
+              <>
+                {registerStep === 0 ? (
+                  <Stack spacing={4}>
+                    <FormControl isRequired>
+                      <FormLabel>Description</FormLabel>
+                      <Textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Human-readable description of this issuer’s role or authority"
+                        size="sm"
+                        rows={5}
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>
+                        Stored on the DID document and helps others understand who this issuer is. You can refine
+                        technical identifiers in the next step.
+                      </FormHelperText>
+                    </FormControl>
+                  </Stack>
+                ) : null}
+                {registerStep === 1 ? (
+                  <Stack spacing={4}>
+                    <FormControl isRequired>
+                      <FormLabel>Name</FormLabel>
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Short identifier (DID path segment)"
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Used with scope to build the DID namespace slug.</FormHelperText>
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Scope</FormLabel>
+                      <Input
+                        value={scope}
+                        onChange={(e) => setScope(e.target.value)}
+                        placeholder="e.g. Petroleum and Natural Gas Act"
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Legal or programme scope (used for DID namespace slug)</FormHelperText>
+                    </FormControl>
+                  </Stack>
+                ) : null}
+                {registerStep === 2 ? (
+                  <Stack spacing={4}>
+                    <Box
+                      fontSize="sm"
+                      color={muted}
+                      p={4}
+                      borderRadius="lg"
+                      borderWidth="1px"
+                      borderColor={cardBorder}
+                      bg={wizardCalloutBg}
+                    >
+                      By default the publisher provisions the primary signing key in Traction. If you also use an
+                      externally managed key, add its multikey here so it can be registered as a delegated verification
+                      method on the DID document.
+                    </Box>
+                    <FormControl>
+                      <FormLabel>Delegated multikey (optional)</FormLabel>
+                      <Input
+                        value={multikey}
+                        onChange={(e) => setMultikey(e.target.value)}
+                        placeholder="z6Mk… (additional issuing key)"
+                        size="sm"
+                        fontFamily="mono"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Leave blank to use only the publisher-provisioned key.</FormHelperText>
+                    </FormControl>
+                  </Stack>
+                ) : null}
+              </>
+            </WizardAnimatedStep>
           </ModalBody>
-          <ModalFooter gap={2} flexWrap="wrap" width="100%">
+          <ModalFooter
+            gap={2}
+            flexWrap="wrap"
+            width="100%"
+            borderTopWidth="1px"
+            borderColor={wizardFooterBorder}
+            bg={wizardFooterBg}
+            py={4}
+            px={{ base: 5, md: 8 }}
+          >
             <Button variant="ghost" onClick={closeRegisterModal} isDisabled={submitting}>
               Cancel
             </Button>
             {registerStep > 0 ? (
-              <Button variant="outline" onClick={goPrevStep} isDisabled={submitting}>
+              <Button variant="outline" onClick={goPrevStep} isDisabled={submitting} borderRadius="lg">
                 Back
               </Button>
             ) : null}
             <Spacer />
             {registerStep < REGISTER_WIZARD_STEPS.length - 1 ? (
-              <Button colorScheme="brand" onClick={goNextStep}>
+              <Button colorScheme="brand" onClick={goNextStep} borderRadius="lg" px={6}>
                 Next
               </Button>
             ) : (
-              <Button colorScheme="brand" onClick={() => void submitRegister()} isLoading={submitting}>
+              <Button colorScheme="brand" onClick={() => void submitRegister()} isLoading={submitting} borderRadius="lg" px={6}>
                 Register issuer
               </Button>
             )}

@@ -20,9 +20,7 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
-  Progress,
   Select,
   Skeleton,
   Spacer,
@@ -34,6 +32,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useCallback, useEffect, useState } from 'react'
+import { WizardAnimatedStep, WizardHeaderChrome } from '../components/WizardModalChrome'
 import { ApiError, apiJson } from '../api/client'
 import type {
   PublisherCredentialTypeSummary,
@@ -97,6 +96,12 @@ export function CredentialTemplatesPage() {
   const preBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const accordionOpenBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const readonlyInputBg = useColorModeValue('gray.50', 'gray.600')
+  const wizardBodyBg = useColorModeValue('white', 'gray.900')
+  const wizardFooterBg = useColorModeValue('gray.50', 'blackAlpha.400')
+  const wizardFooterBorder = useColorModeValue('gray.100', 'gray.700')
+  const wizardCloseBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
+  const wizardCloseHoverBg = useColorModeValue('blackAlpha.200', 'whiteAlpha.300')
+  const issuerHintBg = useColorModeValue('gray.50', 'whiteAlpha.50')
 
   const loadCredentialTypes = useCallback(async () => {
     setLoading(true)
@@ -306,181 +311,230 @@ export function CredentialTemplatesPage() {
         motionPreset="slideInBottom"
         scrollBehavior="inside"
       >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader pb={2}>
-            <Stack spacing={2}>
-              <Text fontSize="md" fontWeight="semibold">
-                Create credential template
-              </Text>
-              <Stack spacing={1}>
-                <Text fontSize="xs" fontWeight="normal" color={muted}>
-                  Step {createStep + 1} of {CREATE_WIZARD_STEPS.length} — {CREATE_WIZARD_STEPS[createStep].title}
-                </Text>
-                <Text fontSize="xs" fontWeight="normal" color={muted}>
-                  {CREATE_WIZARD_STEPS[createStep].subtitle}
-                </Text>
-                <Progress
-                  value={((createStep + 1) / CREATE_WIZARD_STEPS.length) * 100}
-                  size="xs"
-                  colorScheme="brand"
-                  borderRadius="sm"
-                />
-              </Stack>
-            </Stack>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {createStep === 0 ? (
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Type</FormLabel>
-                  <Select value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE} isDisabled size="sm">
-                    <option value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE}>Digital Conformity Credential</option>
-                  </Select>
-                  <FormHelperText>Additional credential types may be added later.</FormHelperText>
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    value={credName}
-                    onChange={(e) => setCredName(e.target.value)}
-                    placeholder="Display name for this template (stored as the VC name)"
-                    size="sm"
-                  />
-                  <FormHelperText>Shown on the verifiable credential template and in issuer tooling.</FormHelperText>
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Version</FormLabel>
-                  <Input value={FIXED_CREDENTIAL_VERSION} isReadOnly size="sm" bg={readonlyInputBg} />
-                  <FormHelperText>New templates use version {FIXED_CREDENTIAL_VERSION}.</FormHelperText>
-                </FormControl>
-              </Stack>
-            ) : null}
-            {createStep === 1 ? (
-              <Stack spacing={4}>
-                <Text fontSize="sm" color={muted}>
-                  Choose the issuer that will sign credentials of this type. The issuer must already be registered for
-                  this publisher.
-                </Text>
-                <FormControl isRequired>
-                  <FormLabel>Issuer</FormLabel>
-                  {loadingIssuers ? (
-                    <Skeleton height="32px" borderRadius="md" />
-                  ) : issuers.length ? (
-                    <Select
-                      placeholder="Select a registered issuer"
-                      value={issuerDid}
-                      onChange={(e) => setIssuerDid(e.target.value)}
-                      size="sm"
-                    >
-                      {issuers.map((row) => (
-                        <option key={row.id} value={row.id}>
-                          {row.name || row.id} — {row.id}
-                        </option>
-                      ))}
-                    </Select>
-                  ) : (
-                    <Stack spacing={2}>
-                      <Alert status="warning" variant="subtle" borderRadius="md" fontSize="sm">
-                        <AlertIcon />
-                        No issuers found. Register an issuer first, or enter a DID manually below.
-                      </Alert>
+        <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(6px)" />
+        <ModalContent borderRadius="2xl" overflow="hidden" boxShadow="2xl" mx={3}>
+          <ModalCloseButton top={4} right={4} zIndex={2} rounded="full" bg={wizardCloseBg} _hover={{ bg: wizardCloseHoverBg }} />
+          <WizardHeaderChrome
+            title="Create credential template"
+            eyebrow="Credential template"
+            steps={CREATE_WIZARD_STEPS}
+            activeIndex={createStep}
+          />
+          <ModalBody px={{ base: 5, md: 8 }} py={6} bg={wizardBodyBg}>
+            <WizardAnimatedStep stepKey={createStep}>
+              <>
+                {createStep === 0 ? (
+                  <Stack spacing={4}>
+                    <FormControl isRequired>
+                      <FormLabel>Type</FormLabel>
+                      <Select
+                        value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE}
+                        isDisabled
+                        size="sm"
+                        borderRadius="lg"
+                      >
+                        <option value={DIGITAL_CONFORMITY_CREDENTIAL_TYPE}>Digital Conformity Credential</option>
+                      </Select>
+                      <FormHelperText>Additional credential types may be added later.</FormHelperText>
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Name</FormLabel>
                       <Input
-                        value={issuerDid}
-                        onChange={(e) => setIssuerDid(e.target.value)}
-                        placeholder="did:web:…"
+                        value={credName}
+                        onChange={(e) => setCredName(e.target.value)}
+                        placeholder="Display name for this template (stored as the VC name)"
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Shown on the verifiable credential template and in issuer tooling.</FormHelperText>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Version</FormLabel>
+                      <Input
+                        value={FIXED_CREDENTIAL_VERSION}
+                        isReadOnly
+                        size="sm"
+                        bg={readonlyInputBg}
+                        borderRadius="lg"
+                      />
+                      <FormHelperText>New templates use version {FIXED_CREDENTIAL_VERSION}.</FormHelperText>
+                    </FormControl>
+                  </Stack>
+                ) : null}
+                {createStep === 1 ? (
+                  <Stack spacing={4}>
+                    <Box
+                      fontSize="sm"
+                      color={muted}
+                      p={4}
+                      borderRadius="lg"
+                      borderWidth="1px"
+                      borderColor={cardBorder}
+                      bg={issuerHintBg}
+                    >
+                      Choose the issuer that will sign credentials of this type. The issuer must already be registered
+                      for this publisher.
+                    </Box>
+                    <FormControl isRequired>
+                      <FormLabel>Issuer</FormLabel>
+                      {loadingIssuers ? (
+                        <Skeleton height="32px" borderRadius="lg" />
+                      ) : issuers.length ? (
+                        <Select
+                          placeholder="Select a registered issuer"
+                          value={issuerDid}
+                          onChange={(e) => setIssuerDid(e.target.value)}
+                          size="sm"
+                          borderRadius="lg"
+                        >
+                          {issuers.map((row) => (
+                            <option key={row.id} value={row.id}>
+                              {row.name || row.id} — {row.id}
+                            </option>
+                          ))}
+                        </Select>
+                      ) : (
+                        <Stack spacing={2}>
+                          <Alert status="warning" variant="subtle" borderRadius="lg" fontSize="sm">
+                            <AlertIcon />
+                            No issuers found. Register an issuer first, or enter a DID manually below.
+                          </Alert>
+                          <Input
+                            value={issuerDid}
+                            onChange={(e) => setIssuerDid(e.target.value)}
+                            placeholder="did:web:…"
+                            size="sm"
+                            fontFamily="mono"
+                            borderRadius="lg"
+                            _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                          />
+                        </Stack>
+                      )}
+                    </FormControl>
+                  </Stack>
+                ) : null}
+                {createStep === 2 ? (
+                  <Stack spacing={4}>
+                    <FormControl isRequired>
+                      <FormLabel>JSON-LD context URL</FormLabel>
+                      <Input
+                        value={contextUrl}
+                        onChange={(e) => setContextUrl(e.target.value)}
+                        placeholder="https://…/context.jsonld"
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>relatedResources.context — fetched when the template is created.</FormHelperText>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Legal act URL (optional)</FormLabel>
+                      <Input
+                        value={legalActUrl}
+                        onChange={(e) => setLegalActUrl(e.target.value)}
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Governance URL (optional)</FormLabel>
+                      <Input
+                        value={governanceUrl}
+                        onChange={(e) => setGovernanceUrl(e.target.value)}
+                        size="sm"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Core path — entity id (JSONPath)</FormLabel>
+                      <Input
+                        value={entityIdPath}
+                        onChange={(e) => setEntityIdPath(e.target.value)}
                         size="sm"
                         fontFamily="mono"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
                       />
-                    </Stack>
-                  )}
-                </FormControl>
-              </Stack>
-            ) : null}
-            {createStep === 2 ? (
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>JSON-LD context URL</FormLabel>
-                  <Input
-                    value={contextUrl}
-                    onChange={(e) => setContextUrl(e.target.value)}
-                    placeholder="https://…/context.jsonld"
-                    size="sm"
-                  />
-                  <FormHelperText>relatedResources.context — fetched when the template is created.</FormHelperText>
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Legal act URL (optional)</FormLabel>
-                  <Input value={legalActUrl} onChange={(e) => setLegalActUrl(e.target.value)} size="sm" />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Governance URL (optional)</FormLabel>
-                  <Input value={governanceUrl} onChange={(e) => setGovernanceUrl(e.target.value)} size="sm" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Core path — entity id (JSONPath)</FormLabel>
-                  <Input value={entityIdPath} onChange={(e) => setEntityIdPath(e.target.value)} size="sm" fontFamily="mono" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Core path — cardinality id (JSONPath)</FormLabel>
-                  <Input
-                    value={cardinalityIdPath}
-                    onChange={(e) => setCardinalityIdPath(e.target.value)}
-                    size="sm"
-                    fontFamily="mono"
-                  />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Subject paths (JSON object)</FormLabel>
-                  <Textarea
-                    value={subjectPathsJson}
-                    onChange={(e) => setSubjectPathsJson(e.target.value)}
-                    size="sm"
-                    fontFamily="mono"
-                    rows={6}
-                  />
-                  <FormHelperText>Map of label → JSONPath strings (credentialSubject fields).</FormHelperText>
-                </FormControl>
-                <FormControl>
-                  <Checkbox isChecked={includeDcc} onChange={(e) => setIncludeDcc(e.target.checked)}>
-                    Include Digital Conformity Credential (UNTP DCC)
-                  </Checkbox>
-                  <FormHelperText ml={6} mt={1}>
-                    Sets <code>additionalType</code> to DigitalConformityCredential and sends additional paths below.
-                  </FormHelperText>
-                </FormControl>
-                {includeDcc ? (
-                  <FormControl isRequired>
-                    <FormLabel>Additional paths (JSON object)</FormLabel>
-                    <Textarea
-                      value={additionalPathsJson}
-                      onChange={(e) => setAdditionalPathsJson(e.target.value)}
-                      size="sm"
-                      fontFamily="mono"
-                      rows={5}
-                    />
-                  </FormControl>
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Core path — cardinality id (JSONPath)</FormLabel>
+                      <Input
+                        value={cardinalityIdPath}
+                        onChange={(e) => setCardinalityIdPath(e.target.value)}
+                        size="sm"
+                        fontFamily="mono"
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                    </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Subject paths (JSON object)</FormLabel>
+                      <Textarea
+                        value={subjectPathsJson}
+                        onChange={(e) => setSubjectPathsJson(e.target.value)}
+                        size="sm"
+                        fontFamily="mono"
+                        rows={6}
+                        borderRadius="lg"
+                        _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      />
+                      <FormHelperText>Map of label → JSONPath strings (credentialSubject fields).</FormHelperText>
+                    </FormControl>
+                    <FormControl>
+                      <Checkbox isChecked={includeDcc} onChange={(e) => setIncludeDcc(e.target.checked)}>
+                        Include Digital Conformity Credential (UNTP DCC)
+                      </Checkbox>
+                      <FormHelperText ml={6} mt={1}>
+                        Sets <code>additionalType</code> to DigitalConformityCredential and sends additional paths below.
+                      </FormHelperText>
+                    </FormControl>
+                    {includeDcc ? (
+                      <FormControl isRequired>
+                        <FormLabel>Additional paths (JSON object)</FormLabel>
+                        <Textarea
+                          value={additionalPathsJson}
+                          onChange={(e) => setAdditionalPathsJson(e.target.value)}
+                          size="sm"
+                          fontFamily="mono"
+                          rows={5}
+                          borderRadius="lg"
+                          _focusVisible={{ boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                        />
+                      </FormControl>
+                    ) : null}
+                  </Stack>
                 ) : null}
-              </Stack>
-            ) : null}
+              </>
+            </WizardAnimatedStep>
           </ModalBody>
-          <ModalFooter gap={2} flexWrap="wrap" width="100%">
+          <ModalFooter
+            gap={2}
+            flexWrap="wrap"
+            width="100%"
+            borderTopWidth="1px"
+            borderColor={wizardFooterBorder}
+            bg={wizardFooterBg}
+            py={4}
+            px={{ base: 5, md: 8 }}
+          >
             <Button variant="ghost" onClick={closeCreateModal} isDisabled={submitting}>
               Cancel
             </Button>
             {createStep > 0 ? (
-              <Button variant="outline" onClick={goPrevStep} isDisabled={submitting}>
+              <Button variant="outline" onClick={goPrevStep} isDisabled={submitting} borderRadius="lg">
                 Back
               </Button>
             ) : null}
             <Spacer />
             {createStep < CREATE_WIZARD_STEPS.length - 1 ? (
-              <Button colorScheme="brand" onClick={goNextStep}>
+              <Button colorScheme="brand" onClick={goNextStep} borderRadius="lg" px={6}>
                 Next
               </Button>
             ) : (
-              <Button colorScheme="brand" onClick={() => void submitCreate()} isLoading={submitting}>
+              <Button colorScheme="brand" onClick={() => void submitCreate()} isLoading={submitting} borderRadius="lg" px={6}>
                 Create template
               </Button>
             )}
