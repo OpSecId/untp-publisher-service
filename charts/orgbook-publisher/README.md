@@ -18,7 +18,6 @@ Helm chart for the UNTP Publisher (credential registration and issuance API).
 | backend.containerSecurityContext | object | `{}` | Security context for backend containers |
 | backend.environment.DID_WEB_SERVER_URL | string | `""` | DID Web Server URL (env alias **`WEBH_SERVER_URL`** also accepted) |
 | backend.environment.ISSUER_REGISTRY_URL | string | `""` | Issuer registry URL |
-| backend.environment.REGISTRY_URL | string | `""` | Entity registry base URL (legacy env `ORGBOOK_URL` still accepted by the app) |
 | backend.environment.PUBLISHER_MULTIKEY | string | `""` | Publisher multikey |
 | backend.environment.TRACTION_API_URL | string | `""` | Traction API URL |
 | backend.host | string | `""` | Backend hostname used for the Ingress rule and DOMAIN env var |

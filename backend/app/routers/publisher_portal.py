@@ -171,7 +171,6 @@ async def publisher_session(token: str = Depends(verify_portal_jwt_token)):
                 "traction_tenant_id": settings.TRACTION_TENANT_ID,
                 "traction_api_url": settings.TRACTION_API_URL,
                 "traction_wallet_introspection_paths": list(TRACTION_WALLET_INTROSPECTION_PATHS),
-                "registry_url": settings.REGISTRY_URL,
                 "did_web_server_url": settings.DID_WEB_SERVER_URL,
                 "issuer_registry_url": settings.ISSUER_REGISTRY_URL,
             },

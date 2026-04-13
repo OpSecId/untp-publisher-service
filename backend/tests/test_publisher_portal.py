@@ -23,7 +23,6 @@ def portal_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="https://traction.example",
-        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )
@@ -62,7 +61,8 @@ def test_publisher_session_returns_environment(portal_client: TestClient) -> Non
         "/tenant/wallet",
         "/tenant/server/status/config",
     ]
-    assert data["environment"]["registry_url"] == "https://registry.example"
+    assert data["environment"]["did_web_server_url"] == "https://did.example"
+    assert data["environment"]["issuer_registry_url"] == "https://registry.example"
 
 
 def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -84,7 +84,6 @@ def test_publisher_session_accepts_traction_wallet_via_introspection(monkeypatch
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="https://traction.example",
-        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )
@@ -129,7 +128,6 @@ def test_publisher_session_accepts_traction_wallet_when_tenant_fails_but_tenant_
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="https://traction.example",
-        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )
@@ -174,7 +172,6 @@ def test_publisher_session_accepts_traction_wallet_when_only_server_status_confi
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="https://traction.example",
-        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )
@@ -244,7 +241,6 @@ def test_publisher_traction_wallet_probes_empty_when_no_traction_url(monkeypatch
         DOMAIN="https://pub.example",
         TRACTION_TENANT_ID="tenant-1",
         TRACTION_API_URL="",
-        REGISTRY_URL="https://registry.example",
         DID_WEB_SERVER_URL="https://did.example",
         ISSUER_REGISTRY_URL="https://registry.example",
     )

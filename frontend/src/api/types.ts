@@ -8,7 +8,6 @@ export type PublisherSession = {
     traction_api_url: string
     /** GET paths tried in order (with Bearer) until HTTP 200; full URLs use traction_api_url. */
     traction_wallet_introspection_paths: string[]
-    registry_url: string
     did_web_server_url: string
     issuer_registry_url: string
   }

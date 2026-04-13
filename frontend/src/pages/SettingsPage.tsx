@@ -128,12 +128,11 @@ export function SettingsPage() {
           <Alert status="warning" variant="left-accent" borderRadius="md" mb={4}>
             <AlertIcon />
             <Box>
-              <Text fontWeight="medium">Registry / DID web URLs look like dev defaults</Text>
+              <Text fontWeight="medium">DID web server URL looks like a dev default</Text>
               <Text fontSize="sm" mt={1}>
-                These rows use <code>localhost</code>, <code>127.0.0.1</code>, or are empty:{' '}
-                {placeholderBackendVars.map((v) => v.rowLabel).join(', ')}. On the API host (e.g. Railway), set{' '}
-                <code>{placeholderBackendVars.map((v) => v.envVar).join(', ')}</code> to URLs the backend can
-                reach (not only the browser / SPA host).
+                This value uses <code>localhost</code>, <code>127.0.0.1</code>, or is empty. On the API host (e.g.
+                Railway), set <code>{placeholderBackendVars.map((v) => v.envVar).join(', ')}</code> to a URL the
+                backend can reach.
               </Text>
             </Box>
           </Alert>
@@ -142,7 +141,6 @@ export function SettingsPage() {
           <Row label="Traction API URL" value={env?.traction_api_url} />
           <Row label="Traction tenant ID" value={env?.traction_tenant_id} />
           <WalletTractionProbePanel tractionApiUrl={env?.traction_api_url} />
-          <Row label="Registry URL" value={env?.registry_url} />
           <Row label="DID web(vh) server" value={env?.did_web_server_url} />
           <Row label="Issuer registry" value={env?.issuer_registry_url} />
         </Stack>
@@ -257,9 +255,6 @@ function collectPlaceholderBackendUrls(
     return []
   }
   const out: { rowLabel: string; envVar: string }[] = []
-  if (isDevPlaceholderUrl(env.registry_url)) {
-    out.push({ rowLabel: 'Registry URL', envVar: 'REGISTRY_URL' })
-  }
   if (isDevPlaceholderUrl(env.did_web_server_url)) {
     out.push({
       rowLabel: 'DID web(vh) server',

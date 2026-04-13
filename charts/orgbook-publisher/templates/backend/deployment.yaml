@@ -39,8 +39,6 @@ spec:
             # PUBLISHER INFO
             - name: DOMAIN
               value: {{ .Values.backend.host }}
-            - name: REGISTRY_URL
-              value: {{ .Values.backend.environment.REGISTRY_URL }}
             - name: PUBLISHER_MULTIKEY
               value: {{ .Values.backend.environment.PUBLISHER_MULTIKEY }}
             - name: ISSUER_REGISTRY_URL

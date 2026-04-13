@@ -8,7 +8,6 @@ from app.models.mongodb import CredentialRecord
 from app.plugins.mongodb import MongoClient
 from config import settings
 from app.utils import timestamp
-from app.plugins.entity_registry import EntityRegistryClient
 from app.plugins import (
     TractionController,
     PublisherRegistrar,
@@ -47,16 +46,13 @@ async def publish_credential(request_body: Publication):
             detail="Unregistered credential type",
         )
     
-    # Check if entity id exists in configured registry
     entity_id = options.get("entityId")
-    try:
-        EntityRegistryClient().fetch_buisness_info(entity_id)
-    except Exception:
+    if entity_id is None or not str(entity_id).strip():
         raise HTTPException(
-            status_code=404,
-            detail=f"No registry registration found for {entity_id}",
+            status_code=400,
+            detail="options.entityId is required",
         )
-        
+
     # Check cardinality, returns hash if new issuance is required
     cardinality_hash = await PublisherRegistrar().check_cardinality(
         credential_input=copy.deepcopy(credential_input), options=options

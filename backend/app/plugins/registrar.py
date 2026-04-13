@@ -4,7 +4,6 @@ import requests
 from app.models.did_document import DidDocument, VerificationMethod, Service
 from app.models.credential import Credential
 from app.plugins import MongoClient, TractionController
-from app.plugins.entity_registry import EntityRegistryClient
 from app.plugins.untp import DigitalConformityCredential
 from app.utils import multikey_to_jwk
 from base58 import b58encode
@@ -17,6 +16,17 @@ import hashlib
 
 class PublisherRegistrarError(Exception):
     """Generic PublisherRegistrar Error."""
+
+
+def _publisher_public_base_url() -> str:
+    """HTTPS base for this publisher (DID service links, ``issuedToParty`` ids); derived from ``DOMAIN``."""
+    d = (settings.DOMAIN or "").strip().rstrip("/")
+    if not d:
+        return "https://localhost"
+    if d.startswith("http://") or d.startswith("https://"):
+        return d
+    return f"https://{d}"
+
 
 class PublisherRegistrar:
     def __init__(self):
@@ -87,9 +97,9 @@ class PublisherRegistrar:
             ],
             service=[
                 Service(
-                    id=f"{did}#entity-registry",
+                    id=f"{did}#publisher",
                     type="LinkedDomains",
-                    serviceEndpoint=settings.REGISTRY_URL,
+                    serviceEndpoint=_publisher_public_base_url(),
                 )
             ],
         )
@@ -250,11 +260,12 @@ class PublisherRegistrar:
                 credential_registration.get("additional_type")
                 == "DigitalConformityCredential"
             ):
-                # Add issuedToParty information from entity registry lookup
-                entity = EntityRegistryClient().fetch_buisness_info(entity_id)
+                # issuedToParty: client supplies entityId; optional entityName for display (no external registry).
+                base = _publisher_public_base_url()
+                party_name = (options.get("entityName") or "").strip() or str(entity_id)
                 credential["credentialSubject"]["issuedToParty"] |= {
-                    "id": entity["id"],
-                    "name": entity["name"],
+                    "id": f"{base}/entity/{entity_id}",
+                    "name": party_name,
                     "registeredId": entity_id,
                 }
 

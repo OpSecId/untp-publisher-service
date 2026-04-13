@@ -51,7 +51,7 @@ Set either a single URI or the discrete fields so PyMongo can reach a real serve
 | **`MONGO_USER`** / **`MONGO_PASSWORD`** | Match your MongoDB user (defaults `dev` / `dev`) |
 | **`MONGO_DB`** | Passed to PyMongo as `authSource` when not using `MONGO_URL` (default `dev`) |
 
-You still need the rest of your deployment secrets and URLs (**`JWT_SECRET`**, **`TRACTION_*`**, **`DOMAIN`**, **`REGISTRY_URL`**, **`DID_WEB_SERVER_URL`**, etc.) from [`config.py`](config.py) / your `.env` template. Legacy env names **`ORGBOOK_URL`** / **`ORGBOOK_SYNC`** are still accepted as aliases for **`REGISTRY_URL`** / **`REGISTRY_SYNC`**. **`WEBH_SERVER_URL`** is accepted as an alias for **`DID_WEB_SERVER_URL`** (e.g. BC WebVH sandbox URL).
+You still need the rest of your deployment secrets and URLs (**`JWT_SECRET`**, **`TRACTION_*`**, **`DOMAIN`**, **`DID_WEB_SERVER_URL`**, **`ISSUER_REGISTRY_URL`**, etc.) from [`config.py`](config.py) / your `.env` template. **`WEBH_SERVER_URL`** is accepted as an alias for **`DID_WEB_SERVER_URL`** (e.g. BC WebVH sandbox URL).
 
 Example with a Compose network where the database service is named `mongo`:
 

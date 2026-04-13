@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 import uuid
 
@@ -24,6 +24,8 @@ class PublicationCredential(BaseModel):
 
 class PublicationOptions(BaseModel):
     entityId: str = Field(example="A0131571")
+    #: Display name for ``issuedToParty`` when formatting DCC credentials (no external entity registry).
+    entityName: Optional[str] = Field(None, example="Sample Entity Ltd.")
     credentialId: str = Field(None, example=str(uuid.uuid4()))
     cardinalityId: str = Field(example="65338")
     additionalData: dict = Field(
