@@ -94,6 +94,32 @@ export function LoginPage() {
   const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
   const outlineBtnHoverBorder = useColorModeValue('gray.400', 'whiteAlpha.600')
   const loginFooterBorder = useColorModeValue('blackAlpha.200', 'whiteAlpha.150')
+  const loginStickyBg = useColorModeValue('rgba(255,255,255,0.92)', 'rgba(23,25,35,0.92)')
+  const loginStickyBorder = useColorModeValue('gray.200', 'whiteAlpha.200')
+  const loginStickyBlur = 'saturate(180%) blur(8px)'
+  const loginNavTitleColor = useColorModeValue('gray.900', 'white')
+
+  const loginTopNav = (
+    <Box
+      as="header"
+      position="sticky"
+      top={0}
+      zIndex={10}
+      w="full"
+      bg={loginStickyBg}
+      borderBottomWidth="1px"
+      borderColor={loginStickyBorder}
+      backdropFilter={loginStickyBlur}
+      sx={{ WebkitBackdropFilter: loginStickyBlur }}
+    >
+      <Flex maxW="lg" mx="auto" w="full" px={{ base: 5, md: 8 }} py={3} align="center" justify="space-between">
+        <Text fontWeight="700" fontSize="md" fontFamily="heading" color={loginNavTitleColor}>
+          UNTP Publisher
+        </Text>
+        <ColorModeToggle variant={toggleVariant} />
+      </Flex>
+    </Box>
+  )
 
   useEffect(() => {
     if (getAccessToken()) navigate('/', { replace: true })
@@ -151,9 +177,7 @@ export function LoginPage() {
   if (phase === 'error') {
     return (
       <Flex minH="100vh" direction="column" bg={errorBg} color={errorFg} position="relative">
-        <Flex position="absolute" top={4} right={4} justify="flex-end" px={4} w="full">
-          <ColorModeToggle variant={toggleVariant} />
-        </Flex>
+        {loginTopNav}
         <Flex flex="1" align="center" justify="center" px={4} py={20}>
           <Box maxW="lg" mx="auto" textAlign="center">
             <Heading size="lg" fontFamily="heading" mb={4}>
@@ -243,9 +267,9 @@ export function LoginPage() {
   if (phase === 'manual') {
     return (
       <Flex minH="100vh" direction="column" position="relative" overflow="hidden" bg={manualPageBg}>
-        <Flex position="absolute" top={4} right={4} zIndex={2} justify="flex-end" px={4} w="full">
-          <ColorModeToggle variant={toggleVariant} />
-        </Flex>
+        <Box position="relative" zIndex={2}>
+          {loginTopNav}
+        </Box>
         <Box
           position="absolute"
           top="-25%"
@@ -330,21 +354,7 @@ export function LoginPage() {
       <Box position="absolute" inset={0} bgGradient={landingMesh} pointerEvents="none" />
 
       <Flex direction="column" minH="100vh" position="relative" zIndex={1}>
-        <Flex
-          as="header"
-          maxW="lg"
-          w="full"
-          mx="auto"
-          px={{ base: 5, md: 8 }}
-          py={5}
-          align="center"
-          justify="space-between"
-        >
-          <Text fontWeight="700" fontSize="md" fontFamily="heading">
-            UNTP Publisher
-          </Text>
-          <ColorModeToggle variant={toggleVariant} />
-        </Flex>
+        {loginTopNav}
 
         <Container maxW="lg" flex="1" px={{ base: 5, md: 8 }} pt={{ base: 4, md: 10 }} pb={12}>
           <Stack spacing={8} textAlign="center" align="stretch">
