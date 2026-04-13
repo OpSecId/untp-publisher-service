@@ -4,9 +4,11 @@ import {
   Container,
   Flex,
   Heading,
+  ListItem,
   Stack,
   Text,
   Textarea,
+  UnorderedList,
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
@@ -90,6 +92,11 @@ export function LoginPage() {
     BC_THEME_CONFIG.gradients.loginLandingDark,
   )
   const heroMuted = useColorModeValue('gray.600', 'whiteAlpha.800')
+  const landingIntroColor = useColorModeValue('gray.700', 'whiteAlpha.900')
+  const landingPanelBg = useColorModeValue('whiteAlpha.720', 'blackAlpha.350')
+  const landingPanelBorder = useColorModeValue('whiteAlpha.600', 'whiteAlpha.120')
+  const landingPanelHeading = useColorModeValue('gray.800', 'white')
+  const landingBulletColor = useColorModeValue('gray.600', 'whiteAlpha.850')
   const outlineBtnBorder = useColorModeValue('gray.300', 'whiteAlpha.400')
   const outlineBtnColor = useColorModeValue('gray.800', 'white')
   const outlineBtnHoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
@@ -366,11 +373,59 @@ export function LoginPage() {
               <Heading as="h1" fontFamily="heading" fontWeight="800" letterSpacing="-0.03em" fontSize={{ base: '2xl', md: '3xl' }}>
                 Digital Documents for Verifiable Conformity (DD4VC)
               </Heading>
-              <Text color={heroMuted} fontSize="md" lineHeight="tall" maxW="md" mx="auto">
+              <Text color={heroMuted} fontSize="md" lineHeight="tall" maxW="xl" mx="auto">
                 Sign in with a publisher token or a Traction wallet JWT. Use the clipboard, or paste your token
                 manually.
               </Text>
+              <Text color={landingIntroColor} fontSize="md" lineHeight="tall" maxW="xl" mx="auto" textAlign={{ base: 'left', md: 'center' }}>
+                This portal talks to your UNTP Publisher API: check deployment and API health, register issuers and
+                credential templates, inspect issued credentials, and review environment details—all using your session
+                token, not the server admin API key.
+              </Text>
             </Stack>
+
+            <Box
+              maxW="xl"
+              mx="auto"
+              w="full"
+              textAlign="left"
+              px={{ base: 5, md: 6 }}
+              py={5}
+              rounded="xl"
+              borderWidth="1px"
+              borderColor={landingPanelBorder}
+              bg={landingPanelBg}
+              backdropFilter="blur(12px)"
+              sx={{ WebkitBackdropFilter: 'blur(12px)' }}
+            >
+              <Text fontSize="sm" fontWeight="semibold" color={landingPanelHeading} mb={3} fontFamily="heading">
+                After you sign in
+              </Text>
+              <UnorderedList spacing={2} pl={1} color={landingBulletColor} fontSize="sm" lineHeight="tall">
+                <ListItem>
+                  <strong>Overview</strong> — service status and build metadata surfaced from the API.
+                </ListItem>
+                <ListItem>
+                  <strong>Issuers</strong> — register DIDs and keys, then reuse them for credential types.
+                </ListItem>
+                <ListItem>
+                  <strong>Credential templates</strong> — define types (context, OCA, status lists) stored by the
+                  publisher.
+                </ListItem>
+                <ListItem>
+                  <strong>Credentials</strong> — browse published credential summaries (no raw VC payload in the list).
+                </ListItem>
+                <ListItem>
+                  <strong>Settings</strong> — browser vs server URLs, token expiry, and optional admin actions such as
+                  rotating an issuer secret.
+                </ListItem>
+              </UnorderedList>
+              <Text fontSize="xs" color={heroMuted} mt={4} lineHeight="short">
+                Tokens from <Text as="span" fontFamily="mono">POST /auth/token</Text> on this API, or a compatible
+                Traction wallet JWT, are accepted when the backend is configured for them.
+              </Text>
+            </Box>
+
             <Stack direction={{ base: 'column', sm: 'row' }} spacing={3} justify="center" align="stretch">
               <Button
                 size="lg"
