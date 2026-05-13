@@ -36,5 +36,3 @@ git rebase origin/main --signoff
 ```
 
 (Adjust `main` if your default branch differs.)
-
-Pull requests are checked in CI so that every commit in the PR range includes `Signed-off-by`.
