@@ -1,8 +1,9 @@
-# Orgbook Publisher Service
+# UNTP Publisher Service
 
-The Orgbook Publisher is a software aimed at facilitating the process for lines of business to publish data as Verifiable Credential to Orgbook.
+The UNTP Publisher is a service that helps lines of business publish **UNTP-aligned** verifiable credentials. Issuance runs through **BC Traction** (tenant APIs); this repository is the publisher API and supporting logic.
 
-To goal is for this data to be queriable and useable by BC registered organizations in they business processes and/or transactions.
+**OrgBook** is used only as an optional **read-only** source for entity metadata (for example resolving an `entityId` via the OrgBook search API). Credentials are **not** issued by or stored in OrgBook’s VC APIs, and issuer DID documents do not advertise OrgBook as a linked service.
 
-For operational guides, please refer to the docs directory, where you will find documentation about admin and clients interacting with the service.
+The goal is for published data to be queryable and usable by BC-registered organizations in their business processes and transactions.
 
+For operational guides, see the [`docs/`](docs/) directory (admin workflows and client integration).
