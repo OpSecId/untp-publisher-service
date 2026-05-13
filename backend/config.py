@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         arbitrary_types_allowed=True,
     )
 
-    PROJECT_TITLE: str = "Orgbook Publisher"
+    PROJECT_TITLE: str = "UNTP Publisher"
     PROJECT_VERSION: str = "v0"
 
     #: When ``True``, the app exposes only ``/server/status`` and ``/test-suite/*`` (no auth,
@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     TRACTION_API_KEY: str = Field(default="dev-local")
     TRACTION_TENANT_ID: str = Field(default="dev-local")
 
+    #: Base URL for read-only OrgBook entity lookup (``/api/v4/search``); not used for OrgBook VC APIs.
     ORGBOOK_URL: str = Field(default="http://localhost")
-    ORGBOOK_SYNC: bool = Field(default=True)
 
     DID_WEB_SERVER_URL: str = Field(default="http://localhost")
     PUBLISHER_MULTIKEY: str = Field(default="dev-local")
@@ -64,11 +64,6 @@ class Settings(BaseSettings):
     @property
     def ORGBOOK_API_URL(self) -> str:
         return f"{self.ORGBOOK_URL}/api/v4"
-
-    @computed_field
-    @property
-    def ORGBOOK_VC_SERVICE(self) -> str:
-        return f"{self.ORGBOOK_URL}/api/vc"
 
     @model_validator(mode="after")
     def _configure_logging(self) -> Settings:

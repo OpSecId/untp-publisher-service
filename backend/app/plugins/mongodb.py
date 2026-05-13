@@ -15,7 +15,7 @@ class MongoClient:
             password=settings.MONGO_PASSWORD,
             authSource=settings.MONGO_DB,
         )
-        self.db = self.client["orgbook-publisher"]
+        self.db = self.client[settings.MONGO_DB]
 
     def provision(self):
         self.db["IssuerRecord"].create_index([("id")], unique=True)

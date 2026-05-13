@@ -1,6 +1,6 @@
-# Orgbook Publisher — Backend
+# UNTP Publisher — Backend
 
-FastAPI backend for the Orgbook Publisher service. See the [repository README](../README.md) for overview and operational docs.
+FastAPI backend for the UNTP Publisher service. See the [repository README](../README.md) for overview and operational docs.
 
 ## Setup
 
@@ -31,9 +31,16 @@ Vendored JSON lives under **`untp/bundled/`** (snapshots from [UNTP `artefacts` 
 
 ## Docker
 
-From the repo root:
+From the repo root (example local image name):
 
 ```bash
-docker build -t orgbook-publisher-service -f backend/Dockerfile backend/
-docker run -p 8000:8000 orgbook-publisher-service
+docker build -t untp-publisher-service -f backend/Dockerfile backend/
+docker run -p 8000:8000 untp-publisher-service
 ```
+
+The container image published to GitHub Container Registry may still use the legacy name `ghcr.io/bcgov/orgbook-publisher-service` until packaging is renamed; the build context is always `backend/`.
+
+## Configuration notes
+
+- **`ORGBOOK_URL`** — Base URL for OrgBook **read-only** lookups (`/api/v4/search`). Not used for OrgBook VC issuance.
+- **`MONGO_DB`** — Application database name; must match the MongoDB user’s authentication database when using chart defaults.
