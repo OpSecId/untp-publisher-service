@@ -1,7 +1,7 @@
 from config import settings
 from fastapi import HTTPException
 import requests
-from app.models.did_document import DidDocument, VerificationMethod, Service
+from app.models.did_document import DidDocument, VerificationMethod
 from app.models.credential import Credential
 from app.plugins import MongoClient, TractionController
 from app.plugins.orgbook import OrgbookClient
@@ -84,13 +84,6 @@ class PublisherRegistrar:
                     controller=did,
                     publicKeyJwk=multikey_to_jwk(authorized_key),
                 ),
-            ],
-            service=[
-                Service(
-                    id=f"{did}#orgbook",
-                    type="LinkedDomains",
-                    serviceEndpoint=settings.ORGBOOK_URL,
-                )
             ],
         )
 
